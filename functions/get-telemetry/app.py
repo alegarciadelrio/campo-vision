@@ -6,6 +6,9 @@ from boto3.dynamodb.conditions import Key, Attr
 from datetime import datetime, timedelta
 from decimal import Decimal
 
+# Import auth module from Lambda layer
+import auth
+
 # Custom JSON encoder to handle Decimal types
 class DecimalEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -57,10 +60,30 @@ def lambda_handler(event, context):
                 'headers': {
                     'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type',
+                    'Access-Control-Allow-Headers': 'Content-Type,Authorization',
                     'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
                 },
                 'body': json.dumps({})
+            }
+            
+        # Validate JWT token
+        try:
+            claims = auth.require_auth(event)
+            logger.info(f"Authenticated user: {claims.get('username') if claims else 'None'} (CORS preflight)")
+        except Exception as e:
+            logger.error(f"Authentication error: {str(e)}")
+            return {
+                'statusCode': 401,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+                    'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
+                },
+                'body': json.dumps({
+                    'error': 'Unauthorized',
+                    'message': str(e)
+                }, cls=DecimalEncoder)
             }
         
         # Get query parameters
@@ -71,7 +94,9 @@ def lambda_handler(event, context):
                 'statusCode': 400,
                 'headers': {
                     'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+                    'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
                 },
                 'body': json.dumps({
                     'error': 'Missing query parameters'
@@ -86,7 +111,9 @@ def lambda_handler(event, context):
                 'statusCode': 400,
                 'headers': {
                     'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+                    'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
                 },
                 'body': json.dumps({
                     'error': 'Missing required parameter: deviceId'
@@ -133,7 +160,9 @@ def lambda_handler(event, context):
             'statusCode': 200,
             'headers': {
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+                'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
             },
             'body': json.dumps({
                 'deviceId': device_id,
@@ -150,7 +179,9 @@ def lambda_handler(event, context):
             'statusCode': 500,
             'headers': {
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+                'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
             },
             'body': json.dumps({
                 'error': 'Internal server error',

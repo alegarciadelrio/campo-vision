@@ -12,8 +12,60 @@ Globals:
     Environment:
       Variables:
         TELEMETRY_TABLE: !Ref TelemetryTable
+        USER_POOL_ID: !Ref CampoVisionUserPool
+        USER_POOL_CLIENT_ID: !Ref CampoVisionUserPoolClient
 
 Resources:
+  # Cognito User Pool
+  CampoVisionUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: CampoVisionUserPool
+      AutoVerifiedAttributes:
+        - email
+      UsernameAttributes:
+        - email
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: true
+          RequireUppercase: true
+      Schema:
+        - Name: email
+          AttributeDataType: String
+          Mutable: true
+          Required: true
+        - Name: name
+          AttributeDataType: String
+          Mutable: true
+          Required: true
+
+  # Cognito User Pool Client
+  CampoVisionUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: CampoVisionClient
+      UserPoolId: !Ref CampoVisionUserPool
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_ADMIN_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_USER_SRP_AUTH
+      PreventUserExistenceErrors: ENABLED
+
+  # Lambda Layer for common code
+  CommonLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: campo-vision-common-layer
+      Description: Common code for Campo Vision Lambda functions
+      ContentUri: ./layers
+      CompatibleRuntimes:
+        - python3.12
+      RetentionPolicy: Retain
+
   # API Gateway
   TelemetryApi:
     Type: AWS::Serverless::Api
@@ -23,6 +75,12 @@ Resources:
         AllowMethods: "'GET,POST,OPTIONS'"
         AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
         AllowOrigin: "'*'"
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !GetAtt CampoVisionUserPool.Arn
+        AddDefaultAuthorizerToCorsPreflight: false
 
   # Lambda Functions
   IngestTelemetryFunction:
@@ -30,9 +88,13 @@ Resources:
     Properties:
       CodeUri: functions/ingest-telemetry/
       Handler: app.lambda_handler
+      Layers:
+        - !Ref CommonLayer
       Environment:
         Variables:
           TELEMETRY_TABLE: !Ref TelemetryTable
+          USER_POOL_ID: !Ref CampoVisionUserPool
+          USER_POOL_CLIENT_ID: !Ref CampoVisionUserPoolClient
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref TelemetryTable
@@ -43,15 +105,21 @@ Resources:
             RestApiId: !Ref TelemetryApi
             Path: /telemetry
             Method: POST
+            Auth:
+              Authorizer: CognitoAuthorizer
 
   GetTelemetryFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: functions/get-telemetry/
       Handler: app.lambda_handler
+      Layers:
+        - !Ref CommonLayer
       Environment:
         Variables:
           TELEMETRY_TABLE: !Ref TelemetryTable
+          USER_POOL_ID: !Ref CampoVisionUserPool
+          USER_POOL_CLIENT_ID: !Ref CampoVisionUserPoolClient
       Events:
         GetAPI:
           Type: Api
@@ -59,6 +127,8 @@ Resources:
             RestApiId: !Ref TelemetryApi
             Path: /telemetry
             Method: GET
+            Auth:
+              Authorizer: CognitoAuthorizer
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref TelemetryTable
@@ -99,3 +169,9 @@ Outputs:
   TelemetryTable:
     Description: "DynamoDB Table for Telemetry Data"
     Value: !Ref TelemetryTable
+  CampoVisionUserPoolId:
+    Description: "Cognito User Pool ID"
+    Value: !Ref CampoVisionUserPool
+  CampoVisionUserPoolClientId:
+    Description: "Cognito User Pool Client ID"
+    Value: !Ref CampoVisionUserPoolClient
