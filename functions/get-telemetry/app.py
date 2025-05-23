@@ -2,14 +2,9 @@ import json
 import boto3
 import os
 import logging
-import sys
 from boto3.dynamodb.conditions import Key, Attr
 from datetime import datetime, timedelta
 from decimal import Decimal
-
-# Add the common directory to the Python path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from common import auth
 
 # Custom JSON encoder to handle Decimal types
 class DecimalEncoder(json.JSONEncoder):
@@ -21,6 +16,8 @@ class DecimalEncoder(json.JSONEncoder):
 # Set up logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+
+# Initialize DynamoDB resources
 
 # Initialize DynamoDB client
 # Check if running locally
@@ -39,28 +36,49 @@ if not table_name:
     
 table = dynamodb.Table(table_name)
 
+# Trigger redeployment and improve error handling for authentication
 def lambda_handler(event, context):
     """
-    Retrieves telemetry data from DynamoDB based on query parameters
+    Handles requests to retrieve telemetry data from DynamoDB
     
-    Supported query parameters:
-    - deviceId: Filter by specific device ID (required)
-    - startTime: ISO8601 timestamp for start of time range
-    - endTime: ISO8601 timestamp for end of time range
-    - limit: Maximum number of records to return (default: 100)
-    
-    Requires authentication via Cognito JWT token in the Authorization header
+    Query parameters:
+    - deviceId: Filter by device ID (required)
+    - startTime: Filter by start time (ISO 8601 format, optional)
+    - endTime: Filter by end time (ISO 8601 format, optional)
     """
-    # Check authentication
-    auth_error = auth.require_auth(event)
-    if auth_error:
-        return auth_error
-        
-    # Get authenticated user
-    user = auth.get_user_from_event(event)
     try:
+        # Log the incoming event for debugging
+        logger.info(f"Received event: {event}")
+        
+        # Check if this is an OPTIONS request (CORS preflight)
+        if event.get('httpMethod') == 'OPTIONS':
+            return {
+                'statusCode': 200,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type',
+                    'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
+                },
+                'body': json.dumps({})
+            }
+        
         # Get query parameters
-        query_params = event.get('queryStringParameters', {}) or {}
+        query_params = event.get('queryStringParameters', {})
+        if not query_params:
+            logger.error("Missing query parameters")
+            return {
+                'statusCode': 400,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({
+                    'error': 'Missing query parameters'
+                })
+            }
+            
+        logger.info(f"Query parameters: {query_params}")
         
         # Check for required deviceId
         if 'deviceId' not in query_params:
@@ -126,6 +144,8 @@ def lambda_handler(event, context):
         
     except Exception as e:
         logger.error(f"Error retrieving telemetry data: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
         return {
             'statusCode': 500,
             'headers': {

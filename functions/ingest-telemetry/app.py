@@ -2,13 +2,8 @@ import json
 import boto3
 import os
 import logging
-import sys
 from datetime import datetime
 from decimal import Decimal
-
-# Add the common directory to the Python path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from common import auth
 
 # Set up logging
 logger = logging.getLogger()
@@ -43,24 +38,59 @@ def lambda_handler(event, context):
         "temperature": 25.5,
         "timestamp": "2023-05-22T14:30:00Z" (optional, will use current time if not provided)
     }
-    
-    Requires authentication via Cognito JWT token in the Authorization header
     """
-    # Check authentication
-    auth_error = auth.require_auth(event)
-    if auth_error:
-        return auth_error
-        
-    # Get authenticated user
-    user = auth.get_user_from_event(event)
     try:
+        # Log the incoming event for debugging
+        logger.info(f"Received event: {event}")
+        
+        # Check if this is an OPTIONS request (CORS preflight)
+        if event.get('httpMethod') == 'OPTIONS':
+            return {
+                'statusCode': 200,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type',
+                    'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
+                },
+                'body': json.dumps({})
+            }
+        
         # Parse request body
-        request_body = json.loads(event['body'])
+        if not event.get('body'):
+            logger.error("Missing request body")
+            return {
+                'statusCode': 400,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({
+                    'error': 'Missing request body'
+                })
+            }
+            
+        try:
+            request_body = json.loads(event['body'])
+            logger.info(f"Request body: {request_body}")
+        except json.JSONDecodeError as e:
+            logger.error(f"Error parsing request body: {str(e)}")
+            return {
+                'statusCode': 400,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({
+                    'error': f'Invalid JSON in request body: {str(e)}'
+                })
+            }
         
         # Validate required fields
         required_fields = ['deviceId', 'latitude', 'longitude', 'temperature']
         for field in required_fields:
             if field not in request_body:
+                logger.error(f"Missing required field: {field}")
                 return {
                     'statusCode': 400,
                     'headers': {
@@ -122,6 +152,8 @@ def lambda_handler(event, context):
         
     except Exception as e:
         logger.error(f"Error processing telemetry data: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
         return {
             'statusCode': 500,
             'headers': {

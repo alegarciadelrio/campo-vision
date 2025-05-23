@@ -11,7 +11,6 @@ Campo Vision is built on AWS using a serverless architecture with the following 
 - **API Gateway**: RESTful API endpoints for the web application
 - **Lambda Functions**: Serverless compute for processing telemetry data
 - **DynamoDB**: NoSQL database for storing equipment and telemetry data
-- **Cognito**: User authentication and authorization
 - **S3**: Storage for processed data and web application hosting
 - **CloudFront**: Content delivery network for the web application
 - **Kinesis**: Real-time data streaming for telemetry data
@@ -24,7 +23,6 @@ Campo Vision is built on AWS using a serverless architecture with the following 
 - Real-time equipment tracking and monitoring
 - Historical data analysis and reporting
 - Maintenance scheduling and alerts
-- User authentication and role-based access control
 - Mobile-responsive web interface
 - Customizable dashboards and reports
 - Equipment performance analytics
@@ -61,8 +59,6 @@ During the guided deployment, you'll be asked to provide:
 
 After deployment completes, you'll receive outputs including:
 - API Gateway endpoint URL
-- Cognito User Pool ID and Client ID
-- Cognito login URL
 - Lambda function ARNs
 - DynamoDB table name
 
@@ -93,25 +89,19 @@ Save these outputs for future reference.
 - AWS SAM CLI
 - Python 3.9 or later
 
-### Authentication
+### API Access
 
-Campo Vision uses Amazon Cognito for authentication. The API endpoints are secured and require a valid JWT token in the Authorization header. See the [Authentication Guide](AUTHENTICATION_GUIDE.md) for detailed instructions on:
-
-- Creating users in the Cognito User Pool
-- Obtaining authentication tokens
-- Making authenticated API requests
+Campo Vision provides open API endpoints for telemetry data ingestion and retrieval. The API is designed to be simple to use with standard HTTP methods.
 
 ### API Endpoints
 
 The API provides the following endpoints:
 
 - **POST /telemetry**: Ingest telemetry data from agricultural equipment
-  - Requires authentication
   - Accepts JSON with deviceId, latitude, longitude, and temperature
   - Returns confirmation with timestamp
 
 - **GET /telemetry**: Retrieve telemetry data with filtering
-  - Requires authentication
   - Query parameters: deviceId (required), startTime, endTime, limit
   - Returns filtered telemetry data
 
@@ -130,7 +120,7 @@ python3 setup-local-dynamodb.py
 python3 test_ingest_locally.py
 python3 test_get_locally.py
 
-# Start API locally (note: authentication will still be required)
+# Start API locally
 sam local start-api
 
 # Invoke a specific function with test events
@@ -138,13 +128,13 @@ sam local invoke IngestTelemetryFunction --event events/ingest-event.json
 sam local invoke GetTelemetryFunction --event events/get-event.json
 ```
 
-### Testing with Authentication
+### Testing the API
 
-After deploying to AWS, you can test the API with authentication using the provided script:
+After deploying to AWS, you can test the API using the provided script:
 
 ```bash
-# Replace with your actual token and API endpoint
-./test_api_with_token.sh YOUR_ACCESS_TOKEN YOUR_API_ENDPOINT
+# Test the API endpoints
+./direct_test.sh
 ```
 
 ## License

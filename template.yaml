@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Campo Vision - Telemetry System for Agricultural Equipment with Cognito Authentication
+  Campo Vision - Telemetry System for Agricultural Equipment
 
 Globals:
   Function:
@@ -12,60 +12,9 @@ Globals:
     Environment:
       Variables:
         TELEMETRY_TABLE: !Ref TelemetryTable
-        COGNITO_USER_POOL_ID: !Ref CampoVisionUserPool
-        COGNITO_REGION: !Ref AWS::Region
 
 Resources:
   # API Gateway
-  # Cognito User Pool for Authentication
-  CampoVisionUserPool:
-    Type: AWS::Cognito::UserPool
-    Properties:
-      UserPoolName: CampoVisionUserPool
-      AutoVerifiedAttributes:
-        - email
-      UsernameAttributes:
-        - email
-      Policies:
-        PasswordPolicy:
-          MinimumLength: 8
-          RequireLowercase: true
-          RequireNumbers: true
-          RequireSymbols: false
-          RequireUppercase: true
-      Schema:
-        - Name: email
-          AttributeDataType: String
-          Mutable: true
-          Required: true
-        - Name: name
-          AttributeDataType: String
-          Mutable: true
-          Required: true
-
-  # Cognito User Pool Client
-  CampoVisionUserPoolClient:
-    Type: AWS::Cognito::UserPoolClient
-    Properties:
-      ClientName: campo-vision-app
-      UserPoolId: !Ref CampoVisionUserPool
-      GenerateSecret: false
-      ExplicitAuthFlows:
-        - ALLOW_USER_PASSWORD_AUTH
-        - ALLOW_REFRESH_TOKEN_AUTH
-        - ALLOW_ADMIN_USER_PASSWORD_AUTH
-      PreventUserExistenceErrors: ENABLED
-      SupportedIdentityProviders:
-        - COGNITO
-
-  # Cognito User Pool Domain
-  CampoVisionUserPoolDomain:
-    Type: AWS::Cognito::UserPoolDomain
-    Properties:
-      Domain: campo-vision-telemetry
-      UserPoolId: !Ref CampoVisionUserPool
-
-  # API Gateway with Cognito Authorizer
   TelemetryApi:
     Type: AWS::Serverless::Api
     Properties:
@@ -74,12 +23,6 @@ Resources:
         AllowMethods: "'GET,POST,OPTIONS'"
         AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
         AllowOrigin: "'*'"
-      Auth:
-        DefaultAuthorizer: CognitoAuthorizer
-        Authorizers:
-          CognitoAuthorizer:
-            UserPoolArn: !GetAtt CampoVisionUserPool.Arn
-        AddDefaultAuthorizerToCorsPreflight: false
 
   # Lambda Functions
   IngestTelemetryFunction:
@@ -87,6 +30,9 @@ Resources:
     Properties:
       CodeUri: functions/ingest-telemetry/
       Handler: app.lambda_handler
+      Environment:
+        Variables:
+          TELEMETRY_TABLE: !Ref TelemetryTable
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref TelemetryTable
@@ -96,23 +42,26 @@ Resources:
           Properties:
             RestApiId: !Ref TelemetryApi
             Path: /telemetry
-            Method: post
+            Method: POST
 
   GetTelemetryFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: functions/get-telemetry/
       Handler: app.lambda_handler
-      Policies:
-        - DynamoDBReadPolicy:
-            TableName: !Ref TelemetryTable
+      Environment:
+        Variables:
+          TELEMETRY_TABLE: !Ref TelemetryTable
       Events:
         GetAPI:
           Type: Api
           Properties:
             RestApiId: !Ref TelemetryApi
             Path: /telemetry
-            Method: get
+            Method: GET
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref TelemetryTable
 
   # DynamoDB Table
   TelemetryTable:
@@ -150,15 +99,3 @@ Outputs:
   TelemetryTable:
     Description: "DynamoDB Table for Telemetry Data"
     Value: !Ref TelemetryTable
-  CognitoUserPoolId:
-    Description: "Cognito User Pool ID"
-    Value: !Ref CampoVisionUserPool
-  CognitoUserPoolClientId:
-    Description: "Cognito User Pool Client ID"
-    Value: !Ref CampoVisionUserPoolClient
-  CognitoUserPoolDomain:
-    Description: "Cognito User Pool Domain"
-    Value: !Sub "https://${CampoVisionUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com"
-  CognitoLoginURL:
-    Description: "Login URL for Cognito Hosted UI"
-    Value: !Sub "https://${CampoVisionUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/login?client_id=${CampoVisionUserPoolClient}&response_type=token&scope=email+openid+profile&redirect_uri=http://localhost:8080/"
