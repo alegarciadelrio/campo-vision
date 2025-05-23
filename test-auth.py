@@ -171,6 +171,8 @@ def ingest_telemetry(access_token):
 
 def get_telemetry(access_token):
     """Retrieve telemetry data from the API"""
+    print(access_token)
+    
     try:
         # Prepare request
         headers = {

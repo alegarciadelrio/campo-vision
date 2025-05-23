@@ -8,15 +8,106 @@ A comprehensive AWS-based telemetry system designed to track and monitor agricul
 
 Campo Vision is built on AWS using a serverless architecture with the following components:
 
-- **API Gateway**: RESTful API endpoints for the web application
+- **API Gateway**: RESTful API endpoints with Cognito authentication
 - **Lambda Functions**: Serverless compute for processing telemetry data
-- **DynamoDB**: NoSQL database for storing equipment and telemetry data
-- **S3**: Storage for processed data and web application hosting
-- **CloudFront**: Content delivery network for the web application
-- **Kinesis**: Real-time data streaming for telemetry data
-- **IoT Core**: Manages device connections and message routing
-- **EventBridge**: Scheduling and automation for maintenance alerts
-- **SNS**: Notification service for alerts and updates
+- **DynamoDB**: NoSQL database for storing telemetry data with device ID and timestamp keys
+- **Cognito**: User authentication and authorization
+- **SAM (Serverless Application Model)**: Infrastructure as code for deployment
+
+## Features
+
+- **Secure API Endpoints**: All endpoints protected with Cognito authentication
+- **Real-time Telemetry Ingestion**: Store device location and sensor data
+- **Flexible Data Retrieval**: Query telemetry data by device ID and time ranges
+- **Token-based Authentication**: Support for both ID tokens and access tokens
+
+## API Endpoints
+
+| Endpoint | Method | Description | Authentication |
+|----------|--------|-------------|----------------|
+| `/telemetry` | POST | Ingest telemetry data | Cognito JWT |
+| `/telemetry` | GET | Retrieve telemetry data with filtering | Cognito JWT |
+
+## Getting Started
+
+### Prerequisites
+
+- AWS CLI configured with appropriate permissions
+- AWS SAM CLI installed
+- Python 3.12 or higher
+- An AWS account with access to Cognito, API Gateway, Lambda, and DynamoDB
+
+### Installation
+
+1. Clone the repository
+
+```bash
+git clone https://github.com/yourusername/campo-vision.git
+cd campo-vision
+```
+
+2. Deploy the application using SAM
+
+```bash
+sam build
+sam deploy --guided
+```
+
+3. Note the outputs from the deployment, including:
+   - API Gateway endpoint URL
+   - Cognito User Pool ID
+   - Cognito User Pool Client ID
+
+### Authentication Setup
+
+1. Create a user in the Cognito User Pool
+
+```bash
+aws cognito-idp admin-create-user \
+  --user-pool-id YOUR_USER_POOL_ID \
+  --username user@example.com \
+  --user-attributes Name=email,Value=user@example.com Name=email_verified,Value=true Name=name,Value="Test User" \
+  --temporary-password "Temporary123!" \
+  --region YOUR_REGION
+```
+
+2. Set a permanent password for the user
+
+```bash
+aws cognito-idp admin-set-user-password \
+  --user-pool-id YOUR_USER_POOL_ID \
+  --username user@example.com \
+  --password "YourPassword123!" \
+  --permanent \
+  --region YOUR_REGION
+```
+
+3. Obtain authentication tokens
+
+```bash
+aws cognito-idp admin-initiate-auth \
+  --user-pool-id YOUR_USER_POOL_ID \
+  --client-id YOUR_CLIENT_ID \
+  --auth-flow ADMIN_USER_PASSWORD_AUTH \
+  --auth-parameters USERNAME=user@example.com,PASSWORD="YourPassword123!" \
+  --region YOUR_REGION
+```
+
+### Testing the API
+
+Use the included test script to authenticate and make API requests:
+
+```bash
+python test-auth.py \
+  --region YOUR_REGION \
+  --user-pool-id YOUR_USER_POOL_ID \
+  --client-id YOUR_CLIENT_ID \
+  --api-endpoint YOUR_API_ENDPOINT \
+  --username user@example.com \
+  --password YourPassword123! \
+  --action get \
+  --device-id YOUR_DEVICE_ID
+```
 
 ## Features
 
