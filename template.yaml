@@ -185,6 +185,78 @@ Resources:
         - AttributeName: companyId
           KeyType: RANGE
 
+  # Frontend Resources
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "campo-vision-frontend-${AWS::AccountId}"
+      AccessControl: Private
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders: ['*']
+            AllowedMethods: [GET]
+            AllowedOrigins: ['*']
+            MaxAge: 3000
+
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: 's3:GetObject'
+            Resource: !Sub "${FrontendBucket.Arn}/*"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${FrontendCloudFrontDistribution}"
+
+  FrontendCloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Origins:
+          - DomainName: !GetAtt FrontendBucket.RegionalDomainName
+            Id: S3Origin
+            S3OriginConfig:
+              OriginAccessIdentity: ''
+            OriginAccessControlId: !GetAtt FrontendCloudFrontOAC.Id
+        Enabled: true
+        DefaultRootObject: index.html
+        DefaultCacheBehavior:
+          AllowedMethods: [GET, HEAD, OPTIONS]
+          TargetOriginId: S3Origin
+          ForwardedValues:
+            QueryString: false
+            Cookies:
+              Forward: none
+          ViewerProtocolPolicy: redirect-to-https
+        PriceClass: PriceClass_100
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+
+  FrontendCloudFrontOAC:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub "campo-vision-oac-${AWS::AccountId}"
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
 Outputs:
   TelemetryApi:
     Description: "API Gateway endpoint URL for Prod stage for Telemetry functions"
@@ -204,6 +276,21 @@ Outputs:
   DeviceTable:
     Description: "DynamoDB Table for Device Data"
     Value: !Ref DeviceTable
+  FrontendBucket:
+    Description: "S3 Bucket for Frontend Hosting"
+    Value: !Ref FrontendBucket
+  FrontendCloudFrontURL:
+    Description: "CloudFront URL for Frontend Access"
+    Value: !Sub "https://${FrontendCloudFrontDistribution.DomainName}"
+  FrontendCloudFrontDistributionId:
+    Description: "CloudFront Distribution ID for Frontend"
+    Value: !Ref FrontendCloudFrontDistribution
+  CognitoUserPoolId:
+    Description: "Cognito User Pool ID"
+    Value: !Ref CampoVisionUserPool
+  CognitoUserPoolClientId:
+    Description: "Cognito User Pool Client ID"
+    Value: !Ref CampoVisionUserPoolClient
   CampoVisionUserPoolId:
     Description: "Cognito User Pool ID"
     Value: !Ref CampoVisionUserPool

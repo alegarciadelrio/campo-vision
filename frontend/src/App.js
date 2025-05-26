@@ -1,0 +1,75 @@
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Container } from 'react-bootstrap';
+import 'bootstrap/dist/css/bootstrap.min.css';
+
+// Components
+import Login from './components/Auth/Login';
+import DeviceMap from './components/Map/DeviceMap';
+import Header from './components/Layout/Header';
+import Footer from './components/Layout/Footer';
+
+// Services
+import { getCurrentUser } from './services/auth';
+
+// Protected route component
+const ProtectedRoute = ({ children }) => {
+  const [loading, setLoading] = useState(true);
+  const [authenticated, setAuthenticated] = useState(false);
+  
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const user = getCurrentUser();
+        if (user) {
+          user.getSession((err, session) => {
+            if (err) {
+              setAuthenticated(false);
+            } else {
+              setAuthenticated(session.isValid());
+            }
+            setLoading(false);
+          });
+        } else {
+          setAuthenticated(false);
+          setLoading(false);
+        }
+      } catch (error) {
+        setAuthenticated(false);
+        setLoading(false);
+      }
+    };
+    
+    checkAuth();
+  }, []);
+  
+  if (loading) {
+    return <div className="text-center p-5">Loading...</div>;
+  }
+  
+  return authenticated ? children : <Navigate to="/login" />;
+};
+
+function App() {
+  return (
+    <Router>
+      <div className="d-flex flex-column min-vh-100">
+        <Header />
+        <main className="flex-grow-1">
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <DeviceMap />
+              </ProtectedRoute>
+            } />
+            <Route path="/" element={<Navigate to="/dashboard" />} />
+          </Routes>
+        </main>
+        <Footer />
+      </div>
+    </Router>
+  );
+}
+
+export default App;
