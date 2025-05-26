@@ -157,6 +157,34 @@ Resources:
           Projection:
             ProjectionType: ALL
 
+  # Company Table
+  CompanyTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: companyId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: companyId
+          KeyType: HASH
+
+  # Device Table
+  DeviceTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: deviceId
+          AttributeType: S
+        - AttributeName: companyId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: deviceId
+          KeyType: HASH
+        - AttributeName: companyId
+          KeyType: RANGE
+
 Outputs:
   TelemetryApi:
     Description: "API Gateway endpoint URL for Prod stage for Telemetry functions"
@@ -170,6 +198,12 @@ Outputs:
   TelemetryTable:
     Description: "DynamoDB Table for Telemetry Data"
     Value: !Ref TelemetryTable
+  CompanyTable:
+    Description: "DynamoDB Table for Company Data"
+    Value: !Ref CompanyTable
+  DeviceTable:
+    Description: "DynamoDB Table for Device Data"
+    Value: !Ref DeviceTable
   CampoVisionUserPoolId:
     Description: "Cognito User Pool ID"
     Value: !Ref CampoVisionUserPool
