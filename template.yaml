@@ -162,6 +162,50 @@ Resources:
         - DynamoDBReadPolicy:
             TableName: !Ref TelemetryTable
 
+  ManageUserCompanyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/manage-user-company/
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref CommonLayer
+      Environment:
+        Variables:
+          USER_COMPANY_TABLE: !Ref UserCompanyTable
+          COMPANY_TABLE: !Ref CompanyTable
+          USER_POOL_ID: !Ref CampoVisionUserPool
+          USER_POOL_CLIENT_ID: !Ref CampoVisionUserPoolClient
+      Events:
+        ManageAPI:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TelemetryApi
+            Path: /user-company
+            Method: POST
+            Auth:
+              Authorizer: CognitoAuthorizer
+        GetAPI:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TelemetryApi
+            Path: /user-company
+            Method: GET
+            Auth:
+              Authorizer: CognitoAuthorizer
+        DeleteAPI:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TelemetryApi
+            Path: /user-company
+            Method: DELETE
+            Auth:
+              Authorizer: CognitoAuthorizer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UserCompanyTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref CompanyTable
+
   # DynamoDB Table
   TelemetryTable:
     Type: AWS::DynamoDB::Table
@@ -210,8 +254,36 @@ Resources:
       KeySchema:
         - AttributeName: deviceId
           KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: CompanyIndex
+          KeySchema:
+            - AttributeName: companyId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  # User Company Table
+  UserCompanyTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: companyId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
         - AttributeName: companyId
           KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: CompanyIndex
+          KeySchema:
+            - AttributeName: companyId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
 
   # Frontend Resources
   FrontendBucket:
@@ -304,6 +376,9 @@ Outputs:
   DeviceTable:
     Description: "DynamoDB Table for Device Data"
     Value: !Ref DeviceTable
+  UserCompanyTable:
+    Description: "DynamoDB Table for User Company Data"
+    Value: !Ref UserCompanyTable
   FrontendBucket:
     Description: "S3 Bucket for Frontend Hosting"
     Value: !Ref FrontendBucket
@@ -325,3 +400,6 @@ Outputs:
   CampoVisionUserPoolClientId:
     Description: "Cognito User Pool Client ID"
     Value: !Ref CampoVisionUserPoolClient
+  ManageUserCompanyFunction:
+    Description: "Manage User Company Lambda Function ARN"
+    Value: !GetAtt ManageUserCompanyFunction.Arn

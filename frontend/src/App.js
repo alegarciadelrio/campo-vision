@@ -5,6 +5,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 // Components
 import Login from './components/Auth/Login';
+import SignUp from './components/Auth/SignUp';
+import VerifyEmail from './components/Auth/VerifyEmail';
 import Dashboard from './components/Dashboard/Dashboard';
 import Header from './components/Layout/Header';
 import Footer from './components/Layout/Footer';
@@ -58,6 +60,8 @@ function App() {
         <main className="flex-grow-1">
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />

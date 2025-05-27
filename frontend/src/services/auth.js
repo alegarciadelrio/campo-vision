@@ -96,3 +96,39 @@ export const getIdToken = async () => {
     throw error;
   }
 };
+
+// Confirm user registration with verification code
+export const confirmSignUp = (email, code) => {
+  return new Promise((resolve, reject) => {
+    const cognitoUser = new CognitoUser({
+      Username: email,
+      Pool: userPool
+    });
+
+    cognitoUser.confirmRegistration(code, true, (err, result) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(result);
+    });
+  });
+};
+
+// Resend verification code
+export const resendConfirmationCode = (email) => {
+  return new Promise((resolve, reject) => {
+    const cognitoUser = new CognitoUser({
+      Username: email,
+      Pool: userPool
+    });
+
+    cognitoUser.resendConfirmationCode((err, result) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(result);
+    });
+  });
+};

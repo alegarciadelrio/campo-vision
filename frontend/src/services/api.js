@@ -63,6 +63,16 @@ export const getAllDevices = async (companyId) => {
   }
 };
 
+export const getUserCompanies = async () => {
+  try {
+    const response = await api.get('/user-company');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching user companies:', error);
+    throw error;
+  }
+};
+
 export const sendTelemetryData = async (telemetryData) => {
   try {
     const response = await api.post('/telemetry', telemetryData);

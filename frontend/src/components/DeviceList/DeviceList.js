@@ -7,11 +7,24 @@ const DeviceList = ({ onDeviceSelect, selectedDeviceId }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCompany, setSelectedCompany] = useState(null);
 
-  // Fetch devices on component mount
+  // Check for selected company in localStorage on component mount
+  useEffect(() => {
+    const savedCompany = localStorage.getItem('selectedCompany');
+    if (savedCompany) {
+      try {
+        setSelectedCompany(JSON.parse(savedCompany));
+      } catch (e) {
+        console.error('Error parsing saved company:', e);
+      }
+    }
+  }, []);
+
+  // Fetch devices when component mounts or when selected company changes
   useEffect(() => {
     fetchDevices();
-  }, []);
+  }, [selectedCompany]);
 
   // Function to fetch all devices
   const fetchDevices = async () => {
@@ -19,7 +32,9 @@ const DeviceList = ({ onDeviceSelect, selectedDeviceId }) => {
     setError('');
     
     try {
-      const response = await getAllDevices();
+      // Pass the selected company ID if available
+      const companyId = selectedCompany ? selectedCompany.companyId : null;
+      const response = await getAllDevices(companyId);
       setDevices(response.devices || []);
     } catch (err) {
       setError('Error fetching devices: ' + (err.message || 'Unknown error'));
@@ -27,6 +42,32 @@ const DeviceList = ({ onDeviceSelect, selectedDeviceId }) => {
       setLoading(false);
     }
   };
+
+  // Listen for company selection changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const savedCompany = localStorage.getItem('selectedCompany');
+      if (savedCompany) {
+        try {
+          const parsedCompany = JSON.parse(savedCompany);
+          setSelectedCompany(parsedCompany);
+        } catch (e) {
+          console.error('Error parsing saved company:', e);
+        }
+      }
+    };
+
+    // Add event listener for storage changes
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Custom event for same-tab communication
+    window.addEventListener('companyChanged', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('companyChanged', handleStorageChange);
+    };
+  }, []);
 
   // Filter devices based on search term
   const filteredDevices = devices.filter(device => 

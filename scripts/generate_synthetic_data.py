@@ -286,7 +286,7 @@ if __name__ == "__main__":
         
         # CloudFormation stack table names
         company_table = 'campo-vision-CompanyTable-1VBJGXKYZKXKO'
-        device_table = 'campo-vision-DeviceTable-PP8GHYNKRDQT'
+        device_table = 'campo-vision-DeviceTable-Y0THVJX31BEI'
         telemetry_table = 'campo-vision-TelemetryTable-NGA2PSH16WWQ'
         
         # Use local table names if using local DynamoDB

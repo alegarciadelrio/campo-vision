@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Form, Button, Alert, Container, Row, Col, Card } from 'react-bootstrap';
 import { signIn } from '../../services/auth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -66,7 +66,7 @@ const Login = () => {
             </Card.Body>
             <Card.Footer className="text-center">
               <p className="mb-0">
-                Don't have an account? Contact your administrator.
+                Don't have an account? <Link to="/signup">Sign up now</Link>
               </p>
             </Card.Footer>
           </Card>
