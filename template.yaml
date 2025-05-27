@@ -73,7 +73,7 @@ Resources:
     Properties:
       StageName: Prod
       Cors:
-        AllowMethods: "'GET,POST,OPTIONS'"
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
         AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
         AllowOrigin: "'*'"
       Auth:
@@ -200,11 +200,79 @@ Resources:
             Method: DELETE
             Auth:
               Authorizer: CognitoAuthorizer
+        OptionsAPI:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TelemetryApi
+            Path: /user-company
+            Method: OPTIONS
+            Auth:
+              Authorizer: NONE
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UserCompanyTable
         - DynamoDBReadPolicy:
             TableName: !Ref CompanyTable
+            
+  ManageCompanyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/manage-company/
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref CommonLayer
+      Environment:
+        Variables:
+          COMPANY_TABLE: !Ref CompanyTable
+          USER_COMPANY_TABLE: !Ref UserCompanyTable
+          USER_POOL_ID: !Ref CampoVisionUserPool
+          USER_POOL_CLIENT_ID: !Ref CampoVisionUserPoolClient
+      Events:
+        CreateAPI:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TelemetryApi
+            Path: /company
+            Method: POST
+            Auth:
+              Authorizer: CognitoAuthorizer
+        GetAPI:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TelemetryApi
+            Path: /company
+            Method: GET
+            Auth:
+              Authorizer: CognitoAuthorizer
+        UpdateAPI:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TelemetryApi
+            Path: /company
+            Method: PUT
+            Auth:
+              Authorizer: CognitoAuthorizer
+        DeleteAPI:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TelemetryApi
+            Path: /company
+            Method: DELETE
+            Auth:
+              Authorizer: CognitoAuthorizer
+        OptionsAPI:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TelemetryApi
+            Path: /company
+            Method: OPTIONS
+            Auth:
+              Authorizer: NONE
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref CompanyTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UserCompanyTable
 
   # DynamoDB Table
   TelemetryTable:

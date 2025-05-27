@@ -142,3 +142,36 @@ def require_auth(event):
         
     token = get_token_from_header(event)
     return validate_token(token)
+
+def get_user_id_from_token(claims):
+    """
+    Extracts the user ID from the token claims
+    
+    Args:
+        claims (dict): The claims from the validated token
+        
+    Returns:
+        str: The user ID
+        
+    Raises:
+        Exception: If the user ID cannot be extracted
+    """
+    try:
+        # First try to get from 'sub' claim (standard JWT claim for subject)
+        if 'sub' in claims:
+            return claims['sub']
+            
+        # If not found, try to get from 'username' claim
+        if 'username' in claims:
+            return claims['username']
+            
+        # If still not found, try cognito:username
+        if 'cognito:username' in claims:
+            return claims['cognito:username']
+            
+        # If we get here, we couldn't find a user ID
+        raise Exception('User ID not found in token claims')
+        
+    except Exception as e:
+        logger.error(f'Error extracting user ID from token: {str(e)}')
+        raise Exception(f'Error extracting user ID from token: {str(e)}')

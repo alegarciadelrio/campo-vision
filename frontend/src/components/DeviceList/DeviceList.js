@@ -23,7 +23,14 @@ const DeviceList = ({ onDeviceSelect, selectedDeviceId }) => {
 
   // Fetch devices when component mounts or when selected company changes
   useEffect(() => {
-    fetchDevices();
+    // Only fetch devices if a company is selected
+    if (selectedCompany) {
+      fetchDevices();
+    } else {
+      // If no company is selected, clear the devices list and set loading to false
+      setDevices([]);
+      setLoading(false);
+    }
   }, [selectedCompany]);
 
   // Function to fetch all devices
@@ -32,10 +39,15 @@ const DeviceList = ({ onDeviceSelect, selectedDeviceId }) => {
     setError('');
     
     try {
-      // Pass the selected company ID if available
-      const companyId = selectedCompany ? selectedCompany.companyId : null;
-      const response = await getAllDevices(companyId);
-      setDevices(response.devices || []);
+      // Only fetch devices if a company is selected
+      if (selectedCompany) {
+        const companyId = selectedCompany.companyId;
+        const response = await getAllDevices(companyId);
+        setDevices(response.devices || []);
+      } else {
+        // If no company is selected, clear the devices list
+        setDevices([]);
+      }
     } catch (err) {
       setError('Error fetching devices: ' + (err.message || 'Unknown error'));
     } finally {
@@ -105,14 +117,18 @@ const DeviceList = ({ onDeviceSelect, selectedDeviceId }) => {
         {error && <Alert variant="danger" className="mx-3">{error}</Alert>}
         
         <div className="flex-grow-1 overflow-auto">
-          {loading && !devices.length ? (
+          {loading ? (
             <div className="text-center p-4">
               <Spinner animation="border" />
               <p className="mt-2">Loading devices...</p>
             </div>
+          ) : !selectedCompany ? (
+            <div className="text-center p-4">
+              <p className="text-muted">Please select a company from the dropdown in the navigation bar to view devices</p>
+            </div>
           ) : filteredDevices.length === 0 ? (
             <div className="text-center p-4">
-              <p className="text-muted">No devices found</p>
+              <p className="text-muted">No devices found for the selected company</p>
             </div>
           ) : (
             <ListGroup variant="flush">

@@ -83,4 +83,14 @@ export const sendTelemetryData = async (telemetryData) => {
   }
 };
 
+export const registerCompany = async (companyData) => {
+  try {
+    const response = await api.post('/company', companyData);
+    return response.data;
+  } catch (error) {
+    console.error('Error registering company:', error);
+    throw error;
+  }
+};
+
 export default api;

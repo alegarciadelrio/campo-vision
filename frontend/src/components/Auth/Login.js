@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Form, Button, Alert, Container, Row, Col, Card } from 'react-bootstrap';
 import { signIn } from '../../services/auth';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -9,6 +10,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { updateAuthState } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,6 +19,8 @@ const Login = () => {
 
     try {
       await signIn(email, password);
+      // Update auth state and trigger the event
+      updateAuthState(true);
       navigate('/dashboard');
     } catch (err) {
       setError(err.message || 'Failed to sign in');
