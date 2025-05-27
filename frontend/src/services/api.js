@@ -63,6 +63,16 @@ export const getAllDevices = async (companyId) => {
   }
 };
 
+export const registerDevice = async (deviceData) => {
+  try {
+    const response = await api.post('/devices', deviceData);
+    return response.data;
+  } catch (error) {
+    console.error('Error registering device:', error);
+    throw error;
+  }
+};
+
 export const getUserCompanies = async () => {
   try {
     const response = await api.get('/user-company');
