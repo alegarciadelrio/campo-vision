@@ -133,6 +133,34 @@ Resources:
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref TelemetryTable
+            
+  ListDevicesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/list-devices/
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref CommonLayer
+      Environment:
+        Variables:
+          DEVICE_TABLE: !Ref DeviceTable
+          TELEMETRY_TABLE: !Ref TelemetryTable
+          USER_POOL_ID: !Ref CampoVisionUserPool
+          USER_POOL_CLIENT_ID: !Ref CampoVisionUserPoolClient
+      Events:
+        GetAPI:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TelemetryApi
+            Path: /devices
+            Method: GET
+            Auth:
+              Authorizer: CognitoAuthorizer
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref DeviceTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref TelemetryTable
 
   # DynamoDB Table
   TelemetryTable:

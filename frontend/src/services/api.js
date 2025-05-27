@@ -47,6 +47,22 @@ export const getTelemetryData = async (deviceId, startTime, endTime) => {
   }
 };
 
+export const getAllDevices = async (companyId) => {
+  try {
+    const params = {};
+    
+    if (companyId) {
+      params.companyId = companyId;
+    }
+    
+    const response = await api.get('/devices', { params });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching devices:', error);
+    throw error;
+  }
+};
+
 export const sendTelemetryData = async (telemetryData) => {
   try {
     const response = await api.post('/telemetry', telemetryData);

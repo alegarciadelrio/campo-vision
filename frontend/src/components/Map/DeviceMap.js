@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import { Container, Card, Form, Button, Row, Col } from 'react-bootstrap';
+import { Container, Card, Row, Col } from 'react-bootstrap';
 import { getTelemetryData } from '../../services/api';
 import L from 'leaflet';
 // Import Leaflet CSS in index.js instead
@@ -30,36 +30,25 @@ const FitBounds = ({ positions }) => {
   return null;
 };
 
-const DeviceMap = () => {
+const DeviceMap = ({ selectedDevice, initialDeviceId, initialPosition }) => {
   const [devices, setDevices] = useState([]);
-  const [deviceId, setDeviceId] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [mapCenter, setMapCenter] = useState([-33.4, -70.9]); // Default to central Chile (lat, lng)
+  const [deviceId, setDeviceId] = useState(initialDeviceId || '');
+  const [mapCenter, setMapCenter] = useState(initialPosition || [-33.4, -70.9]); // Default to central Chile (lat, lng)
   const [mapZoom, setMapZoom] = useState(9);
 
   // Function to fetch device data
-  const fetchDeviceData = async () => {
-    if (!deviceId) {
-      setError('Please enter a Device ID');
+  const fetchDeviceData = async (id) => {
+    if (!id) {
+      console.log('No device ID provided');
       return;
     }
     
-    setLoading(true);
-    setError('');
-    
     try {
-      // Format dates for API
-      const formattedStartDate = startDate ? new Date(startDate).toISOString() : undefined;
-      const formattedEndDate = endDate ? new Date(endDate).toISOString() : undefined;
-      
-      // Fetch telemetry data
-      const response = await getTelemetryData(deviceId, formattedStartDate, formattedEndDate);
+      // Fetch telemetry data (most recent only)
+      const response = await getTelemetryData(id);
       
       if (response.telemetry.length === 0) {
-        setError('No data found for this device in the selected time range');
+        console.log('No data found for this device');
         setDevices([]);
         return;
       }
@@ -73,85 +62,35 @@ const DeviceMap = () => {
         setMapZoom(13);
       }
     } catch (err) {
-      setError('Error fetching device data: ' + (err.message || 'Unknown error'));
-    } finally {
-      setLoading(false);
+      console.error('Error fetching device data:', err);
     }
   };
 
-  return (
-    <Container fluid className="mt-4">
-      <Row>
-        <Col md={3}>
-          <Card className="mb-4">
-            <Card.Header className="bg-primary text-white">
-              <h5 className="mb-0">Device Filter</h5>
-            </Card.Header>
-            <Card.Body>
-              <Form>
-                <Form.Group className="mb-3">
-                  <Form.Label>Device ID</Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={deviceId}
-                    onChange={(e) => setDeviceId(e.target.value)}
-                    placeholder="Enter device ID"
-                  />
-                </Form.Group>
-                
-                <Form.Group className="mb-3">
-                  <Form.Label>Start Date</Form.Label>
-                  <Form.Control
-                    type="datetime-local"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                  />
-                </Form.Group>
-                
-                <Form.Group className="mb-3">
-                  <Form.Label>End Date</Form.Label>
-                  <Form.Control
-                    type="datetime-local"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                  />
-                </Form.Group>
-                
-                <Button 
-                  variant="primary" 
-                  onClick={fetchDeviceData}
-                  disabled={loading}
-                  className="w-100"
-                >
-                  {loading ? 'Loading...' : 'Search'}
-                </Button>
-              </Form>
-              
-              {error && <div className="text-danger mt-3">{error}</div>}
-            </Card.Body>
-          </Card>
-          
-          {devices.length > 0 && (
-            <Card>
-              <Card.Header className="bg-success text-white">
-                <h5 className="mb-0">Device Data</h5>
-              </Card.Header>
-              <Card.Body style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                <div className="small">
-                  {devices.map((device, index) => (
-                    <div key={index} className="mb-3 p-2 border-bottom">
-                      <div><strong>Time:</strong> {new Date(device.timestamp).toLocaleString()}</div>
-                      <div><strong>Lat/Long:</strong> {device.latitude}, {device.longitude}</div>
-                      <div><strong>Temp:</strong> {device.temperature}°C</div>
-                    </div>
-                  ))}
-                </div>
-              </Card.Body>
-            </Card>
-          )}
-        </Col>
+  // Effect to update map when selected device changes
+  useEffect(() => {
+    if (selectedDevice && selectedDevice.deviceId) {
+      setDeviceId(selectedDevice.deviceId);
+      
+      if (selectedDevice.lastTelemetry && 
+          selectedDevice.lastTelemetry.latitude && 
+          selectedDevice.lastTelemetry.longitude) {
+        // Set map center to the device's last position
+        setMapCenter([selectedDevice.lastTelemetry.latitude, selectedDevice.lastTelemetry.longitude]);
+        setMapZoom(13);
         
-        <Col md={9}>
+        // Update devices array with the last telemetry data
+        setDevices([selectedDevice.lastTelemetry]);
+      } else {
+        // If no telemetry data is available, fetch it
+        fetchDeviceData(selectedDevice.deviceId);
+      }
+    }
+  }, [selectedDevice]);
+
+  return (
+    <Container fluid className="h-100">
+      <Row className="h-100">
+        <Col md={12}>
           <Card className="map-container" style={{ height: '80vh' }}>
             <Card.Body className="p-0">
               <MapContainer 

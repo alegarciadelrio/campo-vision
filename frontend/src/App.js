@@ -5,7 +5,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 // Components
 import Login from './components/Auth/Login';
-import DeviceMap from './components/Map/DeviceMap';
+import Dashboard from './components/Dashboard/Dashboard';
 import Header from './components/Layout/Header';
 import Footer from './components/Layout/Footer';
 
@@ -60,7 +60,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={
               <ProtectedRoute>
-                <DeviceMap />
+                <Dashboard />
               </ProtectedRoute>
             } />
             <Route path="/" element={<Navigate to="/dashboard" />} />
