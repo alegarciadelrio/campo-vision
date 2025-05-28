@@ -11,6 +11,7 @@ import SignUp from './components/Auth/SignUp';
 import VerifyEmail from './components/Auth/VerifyEmail';
 import CompanyRegister from './components/Company/CompanyRegister';
 import Dashboard from './components/Dashboard/Dashboard';
+import Metrics from './components/Metrics/Metrics';
 import Header from './components/Layout/Header';
 import Footer from './components/Layout/Footer';
 
@@ -48,6 +49,11 @@ function App() {
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/metrics" element={
+              <ProtectedRoute>
+                <Metrics />
               </ProtectedRoute>
             } />
             <Route path="/" element={<Navigate to="/dashboard" />} />
