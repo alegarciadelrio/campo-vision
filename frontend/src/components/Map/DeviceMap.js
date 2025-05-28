@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { Container, Card, Row, Col } from 'react-bootstrap';
 import { getTelemetryData } from '../../services/api';
+import { useTheme } from '../../context/ThemeContext';
 import L from 'leaflet';
 // Import Leaflet CSS in index.js instead
 
@@ -31,11 +32,36 @@ const FitBounds = ({ positions }) => {
 };
 
 const DeviceMap = ({ selectedDevice, allDevices, initialDeviceId, initialPosition }) => {
+  const { theme } = useTheme();
   const [deviceTelemetry, setDeviceTelemetry] = useState([]);
   const [deviceId, setDeviceId] = useState(initialDeviceId || '');
   const [mapCenter, setMapCenter] = useState(initialPosition || [-33.4, -70.9]); // Default to central Chile (lat, lng)
   const [mapZoom, setMapZoom] = useState(9);
   const [displayedDevices, setDisplayedDevices] = useState([]);
+  
+  // Map style options for dark mode - adjust the darkMapStyle value to change the style
+  // Options: 'esri_dark_gray', 'carto_dark', 'esri_world_imagery'
+  const darkMapStyle = 'esri_world_imagery';
+  
+  // Map tile configurations
+  const mapTiles = {
+    light: {
+      url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    },
+    carto_dark: {
+      url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    },
+    esri_dark_gray: {
+      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+      attribution: '&copy; <a href="https://www.esri.com/">Esri</a> | Sources: Esri, HERE, Garmin, FAO, NOAA, USGS, © OpenStreetMap contributors, and the GIS User Community'
+    },
+    esri_world_imagery: {
+      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+    }
+  };
 
   // Function to fetch device data
   const fetchDeviceData = async (id) => {
@@ -124,10 +150,17 @@ const DeviceMap = ({ selectedDevice, allDevices, initialDeviceId, initialPositio
                 zoom={mapZoom} 
                 style={{ width: '100%', height: '100%' }}
               >
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
+                {theme === 'dark' ? (
+                  <TileLayer
+                    attribution={mapTiles[darkMapStyle].attribution}
+                    url={mapTiles[darkMapStyle].url}
+                  />
+                ) : (
+                  <TileLayer
+                    attribution={mapTiles.light.attribution}
+                    url={mapTiles.light.url}
+                  />
+                )}
                 
                 {/* Display all devices on the map */}
                 {displayedDevices.map((device, index) => {
