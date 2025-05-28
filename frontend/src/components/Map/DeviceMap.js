@@ -30,11 +30,12 @@ const FitBounds = ({ positions }) => {
   return null;
 };
 
-const DeviceMap = ({ selectedDevice, initialDeviceId, initialPosition }) => {
-  const [devices, setDevices] = useState([]);
+const DeviceMap = ({ selectedDevice, allDevices, initialDeviceId, initialPosition }) => {
+  const [deviceTelemetry, setDeviceTelemetry] = useState([]);
   const [deviceId, setDeviceId] = useState(initialDeviceId || '');
   const [mapCenter, setMapCenter] = useState(initialPosition || [-33.4, -70.9]); // Default to central Chile (lat, lng)
   const [mapZoom, setMapZoom] = useState(9);
+  const [displayedDevices, setDisplayedDevices] = useState([]);
 
   // Function to fetch device data
   const fetchDeviceData = async (id) => {
@@ -49,11 +50,11 @@ const DeviceMap = ({ selectedDevice, initialDeviceId, initialPosition }) => {
       
       if (response.telemetry.length === 0) {
         console.log('No data found for this device');
-        setDevices([]);
+        setDeviceTelemetry([]);
         return;
       }
       
-      setDevices(response.telemetry);
+      setDeviceTelemetry(response.telemetry);
       
       // Set map center to the most recent device position
       if (response.telemetry.length > 0) {
@@ -66,6 +67,29 @@ const DeviceMap = ({ selectedDevice, initialDeviceId, initialPosition }) => {
     }
   };
 
+  // Process all devices to display on the map
+  useEffect(() => {
+    if (allDevices && allDevices.length > 0) {
+      // Filter devices that have telemetry data
+      const devicesWithLocation = allDevices.filter(device => 
+        device.lastTelemetry && 
+        device.lastTelemetry.latitude && 
+        device.lastTelemetry.longitude
+      );
+      
+      // Update the displayed devices
+      setDisplayedDevices(devicesWithLocation);
+      
+      // If no device is selected, fit the map to show all devices
+      if (!selectedDevice && devicesWithLocation.length > 0) {
+        // No need to set center as FitBounds component will handle it
+        setMapZoom(9); // Default zoom to see multiple devices
+      }
+    } else {
+      setDisplayedDevices([]);
+    }
+  }, [allDevices, selectedDevice]);
+  
   // Effect to update map when selected device changes
   useEffect(() => {
     if (selectedDevice && selectedDevice.deviceId) {
@@ -78,11 +102,13 @@ const DeviceMap = ({ selectedDevice, initialDeviceId, initialPosition }) => {
         setMapCenter([selectedDevice.lastTelemetry.latitude, selectedDevice.lastTelemetry.longitude]);
         setMapZoom(13);
         
-        // Update devices array with the last telemetry data
-        setDevices([selectedDevice.lastTelemetry]);
+        // We'll still display all devices, but highlight the selected one
       } else {
         // If no telemetry data is available, fetch it
         fetchDeviceData(selectedDevice.deviceId);
+        
+        // Keep the current map view if we can't center on the selected device
+        // This prevents errors when selecting a device without telemetry
       }
     }
   }, [selectedDevice]);
@@ -103,33 +129,77 @@ const DeviceMap = ({ selectedDevice, initialDeviceId, initialPosition }) => {
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
                 
-                {devices.map((device, index) => (
-                  <Marker 
-                    key={index} 
-                    position={[device.latitude, device.longitude]}
-                    icon={index === 0 ? 
-                      L.icon({
-                        iconUrl: icon,
-                        shadowUrl: iconShadow,
-                        iconSize: [25, 41],
-                        iconAnchor: [12, 41],
-                        className: 'first-marker'
-                      }) : DefaultIcon
-                    }
-                  >
-                    <Popup>
-                      <div>
-                        <h5>Device: {device.deviceId}</h5>
-                        <p>Temperature: {device.temperature}°C</p>
-                        <p>Time: {new Date(device.timestamp).toLocaleString()}</p>
-                      </div>
-                    </Popup>
-                  </Marker>
-                ))}
+                {/* Display all devices on the map */}
+                {displayedDevices.map((device, index) => {
+                  // Only proceed if the device has valid telemetry data
+                  if (!device.lastTelemetry || 
+                      !device.lastTelemetry.latitude || 
+                      !device.lastTelemetry.longitude) {
+                    return null; // Skip devices without valid location data
+                  }
+                  
+                  const isSelected = selectedDevice && device.deviceId === selectedDevice.deviceId;
+                  const devicePosition = [
+                    device.lastTelemetry.latitude,
+                    device.lastTelemetry.longitude
+                  ];
+                  
+                  return (
+                    <Marker 
+                      key={device.deviceId} 
+                      position={devicePosition}
+                      icon={isSelected ? 
+                        L.icon({
+                          iconUrl: icon,
+                          shadowUrl: iconShadow,
+                          iconSize: [25, 41],
+                          iconAnchor: [12, 41],
+                          className: 'selected-marker'
+                        }) : DefaultIcon
+                      }
+                    >
+                      <Popup>
+                        <div>
+                          <h5>{device.name || device.deviceId}</h5>
+                          {device.description && <p>{device.description}</p>}
+                          <p>Temperature: {device.lastTelemetry.temperature !== undefined ? `${device.lastTelemetry.temperature}°C` : 'N/A'}</p>
+                          <p>Last seen: {new Date(device.lastTelemetry.timestamp).toLocaleString()}</p>
+                        </div>
+                      </Popup>
+                    </Marker>
+                  );
+                })}
                 
-                {devices.length > 0 && (
+                {/* Display additional telemetry data for selected device if available */}
+                {deviceTelemetry.length > 0 && deviceTelemetry.map((telemetry, index) => {
+                  // Skip the first point as it's already shown in the devices list
+                  if (index === 0) return null;
+                  
+                  return (
+                    <Marker 
+                      key={`telemetry-${index}`} 
+                      position={[telemetry.latitude, telemetry.longitude]}
+                      icon={DefaultIcon}
+                      opacity={0.7} // Make historical points slightly transparent
+                    >
+                      <Popup>
+                        <div>
+                          <h5>Device: {telemetry.deviceId}</h5>
+                          <p>Temperature: {telemetry.temperature}°C</p>
+                          <p>Time: {new Date(telemetry.timestamp).toLocaleString()}</p>
+                        </div>
+                      </Popup>
+                    </Marker>
+                  );
+                })}
+                
+                {/* Fit bounds to show all devices or just the selected one */}
+                {displayedDevices.length > 0 && (
                   <FitBounds 
-                    positions={devices.map(device => [device.latitude, device.longitude])}
+                    positions={
+                      selectedDevice && selectedDevice.lastTelemetry 
+                      ? [[selectedDevice.lastTelemetry.latitude, selectedDevice.lastTelemetry.longitude]] 
+                      : displayedDevices.map(device => [device.lastTelemetry.latitude, device.lastTelemetry.longitude])}
                   />
                 )}
               </MapContainer>

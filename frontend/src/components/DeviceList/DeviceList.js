@@ -9,7 +9,8 @@ const DeviceList = ({ onDeviceSelect, selectedDeviceId }) => {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCompany, setSelectedCompany] = useState(null);
-  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  // Register modal state is kept but disabled by default
+  const [showRegisterModal] = useState(false);
 
   // Check for selected company in localStorage on component mount
   useEffect(() => {
@@ -107,15 +108,6 @@ const DeviceList = ({ onDeviceSelect, selectedDeviceId }) => {
             </Form.Group>
             <div className="d-flex justify-content-end mt-2">
               <Button 
-                variant="outline-success" 
-                size="sm"
-                className="me-2"
-                onClick={() => setShowRegisterModal(true)}
-                disabled={!selectedCompany || loading}
-              >
-                Register
-              </Button>
-              <Button 
                 variant="outline-primary" 
                 size="sm"
                 onClick={fetchDevices}
@@ -180,10 +172,10 @@ const DeviceList = ({ onDeviceSelect, selectedDeviceId }) => {
         </Card.Body>
       </Card>
       
-      {/* Device Registration Modal */}
+      {/* Device Registration Modal - Hidden but kept for future use */}
       <DeviceRegister 
         show={showRegisterModal} 
-        onHide={() => setShowRegisterModal(false)} 
+        onHide={() => {}} 
         onDeviceRegistered={fetchDevices}
         companyId={selectedCompany?.companyId}
       />

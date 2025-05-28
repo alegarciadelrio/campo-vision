@@ -3,13 +3,15 @@ import { Container, Row, Col, Alert, Spinner } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import DeviceList from '../DeviceList/DeviceList';
 import DeviceMap from '../Map/DeviceMap';
-import { getUserCompanies } from '../../services/api';
+import { getUserCompanies, getAllDevices } from '../../services/api';
 
 const Dashboard = () => {
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [hasCompanies, setHasCompanies] = useState(null); // null means loading, true/false after check
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [allDevices, setAllDevices] = useState([]);
+  const [selectedCompany, setSelectedCompany] = useState(null);
   const navigate = useNavigate();
   
   // Check if user has any companies on component mount
@@ -30,6 +32,9 @@ const Dashboard = () => {
           setTimeout(() => {
             navigate('/register-company');
           }, 2000); // Short delay to show the message
+        } else if (userCompanies.length > 0) {
+          // Set the first company as selected by default
+          setSelectedCompany(userCompanies[0]);
         }
       } catch (err) {
         setError('Error checking user companies: ' + (err.message || 'Unknown error'));
@@ -41,6 +46,58 @@ const Dashboard = () => {
     
     checkUserCompanies();
   }, [navigate]);
+  
+  // Effect to fetch all devices when selected company changes
+  useEffect(() => {
+    const fetchAllDevices = async () => {
+      if (!selectedCompany) return;
+      
+      try {
+        const response = await getAllDevices(selectedCompany.companyId);
+        setAllDevices(response.devices || []);
+      } catch (err) {
+        console.error('Error fetching all devices:', err);
+      }
+    };
+    
+    fetchAllDevices();
+  }, [selectedCompany]);
+  
+  // Listen for company selection changes from localStorage
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const savedCompany = localStorage.getItem('selectedCompany');
+      if (savedCompany) {
+        try {
+          const parsedCompany = JSON.parse(savedCompany);
+          setSelectedCompany(parsedCompany);
+        } catch (e) {
+          console.error('Error parsing saved company:', e);
+        }
+      }
+    };
+
+    // Add event listener for storage changes
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Custom event for same-tab communication
+    window.addEventListener('companyChanged', handleStorageChange);
+    
+    // Check for selected company in localStorage on component mount
+    const savedCompany = localStorage.getItem('selectedCompany');
+    if (savedCompany) {
+      try {
+        setSelectedCompany(JSON.parse(savedCompany));
+      } catch (e) {
+        console.error('Error parsing saved company:', e);
+      }
+    }
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('companyChanged', handleStorageChange);
+    };
+  }, []);
   
   // Handle device selection from the list
   const handleDeviceSelect = (device) => {
@@ -96,9 +153,12 @@ const Dashboard = () => {
         <Col md={9} className="h-100">
           <DeviceMap 
             selectedDevice={selectedDevice}
+            allDevices={allDevices}
             initialDeviceId={selectedDevice?.deviceId}
             initialPosition={
-              selectedDevice?.lastTelemetry ? 
+              selectedDevice?.lastTelemetry && 
+              selectedDevice.lastTelemetry.latitude && 
+              selectedDevice.lastTelemetry.longitude ? 
               [selectedDevice.lastTelemetry.latitude, selectedDevice.lastTelemetry.longitude] : 
               undefined
             }
