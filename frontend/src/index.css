@@ -1,3 +1,41 @@
+:root {
+  /* Light theme variables */
+  --bg-color: #ffffff;
+  --text-color: #333333;
+  --card-bg: #ffffff;
+  --card-border: #e0e0e0;
+  --navbar-bg: #343a40;
+  --navbar-text: #ffffff;
+  --primary-color: #007bff;
+  --secondary-color: #6c757d;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --hover-bg: #f8f9fa;
+}
+
+[data-theme='dark'] {
+  /* Dark theme variables */
+  --bg-color: #121212;
+  --text-color: #e0e0e0;
+  --card-bg: #1e1e1e;
+  --card-border: #333333;
+  --navbar-bg: #1a1a1a;
+  --navbar-text: #ffffff;
+  --primary-color: #0d6efd;
+  --secondary-color: #6c757d;
+  --shadow-color: rgba(0, 0, 0, 0.3);
+  --hover-bg: #2c2c2c;
+  --list-group-bg: #2a2a2a;
+  --list-group-hover: #3a3a3a;
+  --list-group-active: #0d6efd;
+  --list-group-border: #333333;
+  --muted-text: #a0a0a0;
+  --success-color: #28a745;
+  --secondary-text: #909090;
+  --form-control-bg: #2a2a2a;
+  --form-control-text: #e0e0e0;
+  --form-control-border: #444444;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -5,6 +43,9 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 code {
@@ -38,5 +79,153 @@ code {
 }
 
 .map-container {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px var(--shadow-color);
+}
+
+/* Theme-specific card styling */
+.card {
+  background-color: var(--card-bg);
+  border-color: var(--card-border);
+  box-shadow: 0 2px 4px var(--shadow-color);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Dark mode list group styling */
+[data-theme='dark'] .list-group-item {
+  background-color: var(--list-group-bg);
+  border-color: var(--list-group-border);
+  color: var(--text-color);
+}
+
+[data-theme='dark'] .list-group-item-action:hover {
+  background-color: var(--list-group-hover);
+}
+
+[data-theme='dark'] .list-group-item-action.active {
+  background-color: var(--list-group-active);
+  border-color: var(--list-group-active);
+}
+
+[data-theme='dark'] .text-muted {
+  color: var(--muted-text) !important;
+}
+
+[data-theme='dark'] .text-success {
+  color: var(--success-color) !important;
+}
+
+[data-theme='dark'] .text-secondary {
+  color: var(--secondary-text) !important;
+}
+
+/* Form controls in dark mode */
+[data-theme='dark'] .form-control {
+  background-color: var(--form-control-bg);
+  border-color: var(--form-control-border);
+  color: var(--form-control-text);
+}
+
+[data-theme='dark'] .form-control:focus {
+  background-color: var(--form-control-bg);
+  color: var(--form-control-text);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Placeholder text in dark mode */
+[data-theme='dark'] .form-control::placeholder {
+  color: #a0a0a0;
+  opacity: 1;
+}
+
+[data-theme='dark'] .form-control::-webkit-input-placeholder {
+  color: #a0a0a0;
+  opacity: 1;
+}
+
+[data-theme='dark'] .form-control::-moz-placeholder {
+  color: #a0a0a0;
+  opacity: 1;
+}
+
+[data-theme='dark'] .form-control:-ms-input-placeholder {
+  color: #a0a0a0;
+  opacity: 1;
+}
+
+[data-theme='dark'] .form-control::-ms-input-placeholder {
+  color: #a0a0a0;
+  opacity: 1;
+}
+
+/* Card header in dark mode */
+[data-theme='dark'] .card-header {
+  border-bottom-color: var(--list-group-border);
+}
+
+[data-theme='dark'] .card-header.bg-primary {
+  background-color: #0d6efd !important;
+}
+
+/* Alert styling in dark mode */
+[data-theme='dark'] .alert-info {
+  background-color: #0d3251;
+  color: #8ed6fb;
+  border-color: #0a558c;
+}
+
+[data-theme='dark'] .alert-danger {
+  background-color: #350d14;
+  color: #ea868f;
+  border-color: #842029;
+}
+
+[data-theme='dark'] .alert-success {
+  background-color: #0d3a17;
+  color: #75b798;
+  border-color: #0f5132;
+}
+
+/* Form label styling in dark mode */
+[data-theme='dark'] .form-label {
+  color: var(--text-color);
+}
+
+/* Card footer styling in dark mode */
+[data-theme='dark'] .card-footer {
+  background-color: #262626;
+  border-top-color: var(--card-border);
+  color: var(--text-color);
+}
+
+/* Link styling in dark mode */
+[data-theme='dark'] a {
+  color: #6ea8fe;
+}
+
+[data-theme='dark'] a:hover {
+  color: #8bb9fe;
+}
+
+/* Form text (helper text) in dark mode */
+[data-theme='dark'] .form-text {
+  color: var(--muted-text) !important;
+}
+
+/* Theme toggle button styling */
+.theme-toggle-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-right: 10px;
+  color: var(--navbar-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  transition: transform 0.2s ease;
+}
+
+.theme-toggle-btn:hover {
+  transform: scale(1.1);
 }
