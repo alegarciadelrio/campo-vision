@@ -12,6 +12,7 @@ Campo Vision is built on AWS using a serverless architecture with the following 
 - **Lambda Functions**: Serverless compute for processing telemetry data
 - **DynamoDB**: NoSQL database for storing telemetry data with device ID and timestamp keys
 - **Cognito**: User authentication and authorization
+- **S3 & CloudFront**: Frontend hosting and content delivery
 - **SAM (Serverless Application Model)**: Infrastructure as code for deployment
 
 ## Features
@@ -20,6 +21,10 @@ Campo Vision is built on AWS using a serverless architecture with the following 
 - **Real-time Telemetry Ingestion**: Store device location and sensor data
 - **Flexible Data Retrieval**: Query telemetry data by device ID and time ranges
 - **Token-based Authentication**: Support for both ID tokens and access tokens
+- **Interactive Map Visualization**: OpenStreetMap integration with Leaflet for device tracking
+- **Multi-Company Support**: Switch between different companies with the company selector
+- **Responsive Design**: Mobile-friendly interface for field use
+- **Historical Data Analysis**: View and analyze past telemetry data
 
 ## API Endpoints
 
@@ -27,6 +32,8 @@ Campo Vision is built on AWS using a serverless architecture with the following 
 |----------|--------|-------------|----------------|
 | `/telemetry` | POST | Ingest telemetry data | Cognito JWT |
 | `/telemetry` | GET | Retrieve telemetry data with filtering | Cognito JWT |
+| `/user-companies` | GET | Get companies associated with a user | Cognito JWT |
+| `/devices` | GET | Get devices by company | Cognito JWT |
 
 ## Getting Started
 
@@ -35,9 +42,10 @@ Campo Vision is built on AWS using a serverless architecture with the following 
 - AWS CLI configured with appropriate permissions
 - AWS SAM CLI installed
 - Python 3.12 or higher
-- An AWS account with access to Cognito, API Gateway, Lambda, and DynamoDB
+- Node.js and npm for frontend development
+- An AWS account with access to Cognito, API Gateway, Lambda, DynamoDB, S3, and CloudFront
 
-### Installation
+### Backend Installation
 
 1. Clone the repository
 
@@ -46,17 +54,57 @@ git clone https://github.com/yourusername/campo-vision.git
 cd campo-vision
 ```
 
-2. Deploy the application using SAM
+2. Create a `.env` file with your environment variables (see `.env.example` for reference)
+
+3. Deploy the application using SAM
 
 ```bash
 sam build
 sam deploy --guided
 ```
 
-3. Note the outputs from the deployment, including:
+4. Note the outputs from the deployment, including:
    - API Gateway endpoint URL
    - Cognito User Pool ID
    - Cognito User Pool Client ID
+   - DynamoDB table names
+
+### Frontend Setup
+
+1. Navigate to the frontend directory
+
+```bash
+cd frontend
+```
+
+2. Install dependencies
+
+```bash
+npm install
+```
+
+3. Create a `.env` file with your configuration (see `.env.example` for reference)
+
+```
+REACT_APP_API_ENDPOINT=https://your-api-id.execute-api.your-region.amazonaws.com/Prod
+REACT_APP_REGION=your-region
+REACT_APP_USER_POOL_ID=your-user-pool-id
+REACT_APP_USER_POOL_CLIENT_ID=your-client-id
+```
+
+4. Start the development server
+
+```bash
+npm start
+```
+
+5. For production deployment
+
+```bash
+npm run build
+# Deploy to S3 and CloudFront (requires AWS credentials)
+npm run deploy
+```
 
 ### Authentication Setup
 
@@ -161,13 +209,23 @@ Save these outputs for future reference.
 /campo-vision
 ├── template.yaml         # AWS SAM template
 ├── functions/            # Lambda function code
-│   ├── ingest-telemetry/
-│   ├── get-telemetry/
-│   ├── manage-equipment/
-│   ├── process-telemetry/
-│   ├── analytics/
-│   └── maintenance/
-├── web/                  # Web application frontend
+│   ├── ingest-telemetry/ # Handles telemetry data ingestion
+│   ├── get-telemetry/    # Retrieves telemetry data with filtering
+│   ├── manage-user-company/ # Manages user-company relationships
+│   ├── common/           # Shared code including authentication
+│   └── events/           # Sample event files for testing
+├── frontend/            # React web application frontend
+│   ├── public/           # Static assets
+│   ├── src/              # React source code
+│   │   ├── components/   # React components
+│   │   │   ├── Auth/     # Authentication components
+│   │   │   ├── Dashboard/# Main dashboard view
+│   │   │   ├── Map/      # OpenStreetMap integration with Leaflet
+│   │   │   └── CompanySelector/ # Company selection dropdown
+│   │   ├── services/     # API and authentication services
+│   │   └── App.js        # Main application component
+│   └── package.json      # Frontend dependencies
+├── scripts/             # Utility scripts for deployment and testing
 └── README.md            # This file
 ```
 
