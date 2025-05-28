@@ -229,6 +229,7 @@ const Metrics = () => {
   // Chart options
   const chartOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         position: 'top',
@@ -242,7 +243,26 @@ const Metrics = () => {
       x: {
         ticks: {
           maxRotation: 45,
-          minRotation: 45
+          minRotation: 45,
+          font: {
+            size: 10
+          }
+        },
+        grid: {
+          display: true
+        }
+      },
+      y: {
+        beginAtZero: false,
+        grace: '10%',  // Add some padding above and below data points
+        ticks: {
+          precision: 1,
+          font: {
+            size: 10
+          }
+        },
+        grid: {
+          display: true
         }
       }
     }
@@ -337,13 +357,60 @@ const Metrics = () => {
                               Hide
                             </Button>
                           </Card.Header>
-                          <Card.Body>
+                          <Card.Body style={{ minHeight: '300px' }}>
                             <Line options={chartOptions} data={prepareChartData(attribute)} />
                           </Card.Body>
                         </Card>
                       </Col>
                     ))}
                   </Row>
+                  
+                  {/* Table showing all telemetry values */}
+                  <Card className="mb-4">
+                    <Card.Header className="bg-primary text-white">
+                      <h5 className="mb-0">Telemetry Data Table</h5>
+                    </Card.Header>
+                    <Card.Body>
+                      <div className="table-responsive">
+                        <table className="table table-striped table-hover table-sm">
+                          <thead>
+                            <tr>
+                              <th>Timestamp</th>
+                              {getGraphAttributes().map(attribute => (
+                                <th key={attribute} className="text-capitalize">{attribute}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {telemetryData.length === 0 ? (
+                              <tr>
+                                <td colSpan={getGraphAttributes().length + 1} className="text-center">
+                                  No data available
+                                </td>
+                              </tr>
+                            ) : (
+                              [...telemetryData]
+                                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                                .map((item, index) => (
+                                  <tr key={index}>
+                                    <td>{new Date(item.timestamp).toLocaleString()}</td>
+                                    {getGraphAttributes().map(attribute => (
+                                      <td key={attribute}>
+                                        {item[attribute] !== undefined ? 
+                                          typeof item[attribute] === 'number' ? 
+                                            item[attribute].toFixed(2) : 
+                                            item[attribute]
+                                          : '-'}
+                                      </td>
+                                    ))}
+                                  </tr>
+                                ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </Card.Body>
+                  </Card>
                 </div>
               )}
             </Card.Body>
