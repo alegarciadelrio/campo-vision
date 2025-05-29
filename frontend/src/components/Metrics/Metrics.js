@@ -164,16 +164,16 @@ const Metrics = () => {
   
   // Get color for a specific attribute
   const getAttributeColor = (attribute, index) => {
-    // Predefined colors for common attributes
+    // Predefined colors for common attributes with increased brightness for dark mode
     const colorMap = {
-      'temperature': { border: 'rgb(255, 99, 132)', background: 'rgba(255, 99, 132, 0.5)' },
-      'humidity': { border: 'rgb(54, 162, 235)', background: 'rgba(54, 162, 235, 0.5)' },
-      'pressure': { border: 'rgb(75, 192, 192)', background: 'rgba(75, 192, 192, 0.5)' },
-      'latitude': { border: 'rgb(153, 102, 255)', background: 'rgba(153, 102, 255, 0.5)' },
-      'longitude': { border: 'rgb(255, 159, 64)', background: 'rgba(255, 159, 64, 0.5)' },
-      'altitude': { border: 'rgb(255, 205, 86)', background: 'rgba(255, 205, 86, 0.5)' },
-      'speed': { border: 'rgb(201, 203, 207)', background: 'rgba(201, 203, 207, 0.5)' },
-      'battery': { border: 'rgb(75, 192, 75)', background: 'rgba(75, 192, 75, 0.5)' }
+      'temperature': { border: 'rgb(255, 99, 132)', background: 'rgba(255, 99, 132, 0.7)' },
+      'humidity': { border: 'rgb(54, 162, 235)', background: 'rgba(54, 162, 235, 0.7)' },
+      'pressure': { border: 'rgb(75, 192, 192)', background: 'rgba(75, 192, 192, 0.7)' },
+      'latitude': { border: 'rgb(153, 102, 255)', background: 'rgba(153, 102, 255, 0.7)' },
+      'longitude': { border: 'rgb(255, 159, 64)', background: 'rgba(255, 159, 64, 0.7)' },
+      'altitude': { border: 'rgb(255, 205, 86)', background: 'rgba(255, 205, 86, 0.7)' },
+      'speed': { border: 'rgb(201, 203, 207)', background: 'rgba(201, 203, 207, 0.7)' },
+      'battery': { border: 'rgb(75, 192, 75)', background: 'rgba(75, 192, 75, 0.7)' }
     };
     
     // Return predefined color if available, otherwise generate based on index
@@ -181,10 +181,11 @@ const Metrics = () => {
       return colorMap[attribute];
     } else {
       // Generate colors based on index for attributes not in the map
+      // Increased saturation and lightness for better visibility in dark mode
       const hue = (index * 137) % 360; // Golden angle approximation for good distribution
       return {
-        border: `hsl(${hue}, 70%, 50%)`,
-        background: `hsla(${hue}, 70%, 50%, 0.5)`
+        border: `hsl(${hue}, 80%, 60%)`,
+        background: `hsla(${hue}, 80%, 60%, 0.7)`
       };
     }
   };
@@ -226,17 +227,26 @@ const Metrics = () => {
     };
   };
   
-  // Chart options
+  // Chart options that work in both light and dark modes
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: {
         position: 'top',
+        labels: {
+          font: {
+            weight: 'bold'
+          }
+        }
       },
       title: {
         display: true,
         text: 'Telemetry Data',
+        font: {
+          size: 16,
+          weight: 'bold'
+        }
       },
     },
     scales: {
@@ -312,20 +322,21 @@ const Metrics = () => {
                 </Alert>
               ) : (
                 <div>
-                  {/* Display available attributes at the top */}
-                  <Card className="mb-4">
-                    <Card.Header>Available Telemetry Attributes</Card.Header>
+                  {/* Display available attributes at the top with improved contrast */}
+                  <Card className="mb-4" border="primary">
+                    <Card.Header className="bg-primary text-white">Available Telemetry Attributes</Card.Header>
                     <Card.Body>
                       <div className="d-flex flex-wrap gap-2">
                         {getGraphAttributes().map((attribute, index) => (
                           <div 
                             key={attribute} 
-                            className={`badge ${enabledAttributes[attribute] !== false ? 'bg-light text-dark' : 'bg-secondary text-white'} p-2 d-flex align-items-center cursor-pointer`}
+                            className={`badge ${enabledAttributes[attribute] !== false ? 'bg-primary text-white' : 'bg-secondary text-white'} p-2 d-flex align-items-center cursor-pointer`}
                             style={{ 
                               borderLeft: `4px solid ${getAttributeColor(attribute, index).border}`,
                               fontSize: '1rem',
                               cursor: 'pointer',
-                              opacity: enabledAttributes[attribute] !== false ? 1 : 0.7
+                              opacity: enabledAttributes[attribute] !== false ? 1 : 0.6,
+                              boxShadow: enabledAttributes[attribute] !== false ? '0 2px 4px rgba(0,0,0,0.2)' : 'none'
                             }}
                             onClick={() => toggleAttribute(attribute)}
                             title={`Click to ${enabledAttributes[attribute] !== false ? 'disable' : 'enable'} ${attribute} graph`}
@@ -341,15 +352,15 @@ const Metrics = () => {
                     </Card.Body>
                   </Card>
                   
-                  {/* Dynamically generate charts for each enabled attribute */}
+                  {/* Dynamically generate charts for each enabled attribute with improved contrast */}
                   <Row className="mb-4">
                     {getEnabledGraphAttributes().map((attribute, index) => (
                       <Col md={6} key={attribute} className="mb-4">
-                        <Card>
-                          <Card.Header className="text-capitalize d-flex justify-content-between align-items-center">
-                            {attribute}
+                        <Card border="primary">
+                          <Card.Header className="text-capitalize d-flex justify-content-between align-items-center bg-primary text-white">
+                            <strong>{attribute}</strong>
                             <Button 
-                              variant="outline-danger" 
+                              variant="danger" 
                               size="sm"
                               onClick={() => toggleAttribute(attribute)}
                               title={`Disable ${attribute} graph`}
@@ -365,8 +376,8 @@ const Metrics = () => {
                     ))}
                   </Row>
                   
-                  {/* Table showing all telemetry values */}
-                  <Card className="mb-4">
+                  {/* Table showing all telemetry values with improved contrast */}
+                  <Card className="mb-4" border="primary">
                     <Card.Header className="bg-primary text-white">
                       <h5 className="mb-0">Telemetry Data Table</h5>
                     </Card.Header>
