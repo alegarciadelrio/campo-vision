@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import ThemeContext from '../../context/ThemeContext';
 import { Container, Row, Col, Alert, Spinner, Card, Form, Button } from 'react-bootstrap';
+import { ChevronDown, ChevronUp } from 'react-bootstrap-icons';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -35,6 +36,7 @@ const Metrics = () => {
   const [error, setError] = useState('');
   const [timeRange, setTimeRange] = useState('24h'); // Default to last 24 hours
   const [enabledAttributes, setEnabledAttributes] = useState({});
+  const [isTableExpanded, setIsTableExpanded] = useState(false); // Default to collapsed
   
   // Fetch telemetry data when a device is selected
   useEffect(() => {
@@ -385,47 +387,66 @@ const Metrics = () => {
                   <Card className="mb-4">
                     <Card.Header className="d-flex justify-content-between align-items-center">
                       <h4 className="mb-0">Telemetry Data Table</h4>
+                      <Button 
+                        variant="outline-secondary" 
+                        size="sm" 
+                        className="d-flex align-items-center"
+                        style={{ padding: '8px 12px' }} // Increase button size for better touch targets
+                        onClick={() => setIsTableExpanded(!isTableExpanded)}
+                      >
+                        {isTableExpanded ? (
+                          <>
+                            <ChevronUp className="me-1" /> Collapse
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDown className="me-1" /> Expand
+                          </>
+                        )}
+                      </Button>
                     </Card.Header>
-                    <Card.Body className="p-0">
-                      <div className="table-responsive">
-                        <table className={`table table-striped table-hover table-sm`}>
-                          <thead>
-                            <tr>
-                              <th>Timestamp</th>
-                              {getGraphAttributes().map(attribute => (
-                                <th key={attribute} className="text-capitalize">{attribute}</th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {telemetryData.length === 0 ? (
+                    {isTableExpanded && (
+                      <Card.Body className="p-0">
+                        <div className="table-responsive">
+                          <table className={`table table-striped table-hover table-sm`}>
+                            <thead>
                               <tr>
-                                <td colSpan={getGraphAttributes().length + 1} className="text-center">
-                                  No data available
-                                </td>
+                                <th>Timestamp</th>
+                                {getGraphAttributes().map(attribute => (
+                                  <th key={attribute} className="text-capitalize">{attribute}</th>
+                                ))}
                               </tr>
-                            ) : (
-                              [...telemetryData]
-                                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-                                .map((item, index) => (
-                                  <tr key={index}>
-                                    <td>{new Date(item.timestamp).toLocaleString()}</td>
-                                    {getGraphAttributes().map(attribute => (
-                                      <td key={attribute}>
-                                        {item[attribute] !== undefined ? 
-                                          typeof item[attribute] === 'number' ? 
-                                            item[attribute].toFixed(2) : 
-                                            item[attribute]
-                                          : '-'}
-                                      </td>
-                                    ))}
-                                  </tr>
-                                ))
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-                    </Card.Body>
+                            </thead>
+                            <tbody>
+                              {telemetryData.length === 0 ? (
+                                <tr>
+                                  <td colSpan={getGraphAttributes().length + 1} className="text-center">
+                                    No data available
+                                  </td>
+                                </tr>
+                              ) : (
+                                [...telemetryData]
+                                  .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                                  .map((item, index) => (
+                                    <tr key={index}>
+                                      <td>{new Date(item.timestamp).toLocaleString()}</td>
+                                      {getGraphAttributes().map(attribute => (
+                                        <td key={attribute}>
+                                          {item[attribute] !== undefined ? 
+                                            typeof item[attribute] === 'number' ? 
+                                              item[attribute].toFixed(2) : 
+                                              item[attribute]
+                                            : '-'}
+                                        </td>
+                                      ))}
+                                    </tr>
+                                  ))
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      </Card.Body>
+                    )}
                   </Card>
                 </div>
               )}
