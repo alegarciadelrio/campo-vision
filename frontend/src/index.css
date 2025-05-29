@@ -161,6 +161,16 @@ code {
 /* Card header in dark mode */
 [data-theme='dark'] .card-header {
   border-bottom-color: var(--list-group-border);
+  background-color: #2a2a2a !important;
+  color: #ffffff !important;
+}
+
+[data-theme='dark'] .card-header h4,
+[data-theme='dark'] .card-header h5,
+[data-theme='dark'] .card-header .h4,
+[data-theme='dark'] .card-header .h5 {
+  color: #ffffff !important;
+  font-weight: 500;
 }
 
 [data-theme='dark'] .card-header.bg-primary {
@@ -210,6 +220,50 @@ code {
 /* Form text (helper text) in dark mode */
 [data-theme='dark'] .form-text {
   color: var(--muted-text) !important;
+}
+
+/* Table styling for dark mode */
+[data-theme='dark'] .table {
+  color: var(--text-color) !important;
+  background-color: var(--card-bg) !important;
+  border-color: var(--list-group-border) !important;
+}
+
+/* Force background color for all table cells */
+[data-theme='dark'] .table td,
+[data-theme='dark'] .table th {
+  background-color: inherit !important;
+  color: var(--text-color) !important;
+  border-top-color: var(--list-group-border) !important;
+}
+
+[data-theme='dark'] .table thead th {
+  background-color: #262626 !important;
+  color: var(--text-color) !important;
+  border-bottom-color: var(--list-group-border) !important;
+}
+
+/* Override Bootstrap's striped table styles */
+[data-theme='dark'] .table-striped > tbody > tr:nth-of-type(odd) > * {
+  background-color: #1a1a1a !important;
+  --bs-table-accent-bg: #1a1a1a !important;
+}
+
+[data-theme='dark'] .table-striped > tbody > tr:nth-of-type(even) > * {
+  background-color: #222222 !important;
+  --bs-table-accent-bg: #222222 !important;
+}
+
+/* Override Bootstrap's hover styles */
+[data-theme='dark'] .table-hover tbody tr:hover td {
+  background-color: #2c2c2c !important;
+  --bs-table-accent-bg: #2c2c2c !important;
+  color: var(--text-color) !important;
+}
+
+/* Ensure the table container has the right background */
+[data-theme='dark'] .card .table-responsive {
+  background-color: var(--card-bg) !important;
 }
 
 /* Theme toggle button styling */
