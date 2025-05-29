@@ -144,6 +144,14 @@ const DeviceMap = ({ selectedDevice, allDevices, initialDeviceId, initialPositio
       <Row className="h-100">
         <Col md={12}>
           <Card className="map-container" style={{ height: '80vh' }}>
+            <Card.Header className="d-flex justify-content-between align-items-center">
+              <h4 className="mb-0">Device Map</h4>
+              {selectedDevice && (
+                <div className="text-muted">
+                  {selectedDevice.name || selectedDevice.deviceId}
+                </div>
+              )}
+            </Card.Header>
             <Card.Body className="p-0">
               <MapContainer 
                 center={mapCenter} 

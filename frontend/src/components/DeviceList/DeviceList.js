@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, ListGroup, Form, Button, Spinner, Alert } from 'react-bootstrap';
+import { Card, Form, Button, Spinner, Alert, Table } from 'react-bootstrap';
 import DeviceRegister from '../Device/DeviceRegister';
 import { getAllDevices } from '../../services/api';
 
@@ -92,12 +92,20 @@ const DeviceList = ({ onDeviceSelect, selectedDeviceId }) => {
 
   return (
     <>
-      <Card className="mb-4 h-100">
-        <Card.Header className="bg-primary text-white">
-          <h5 className="mb-0">Registered Devices</h5>
+      <Card className="h-100 d-flex flex-column">
+        <Card.Header className="d-flex justify-content-between align-items-center">
+          <h4 className="mb-0">Devices</h4>
+          <Button 
+            variant="primary" 
+            size="sm"
+            onClick={fetchDevices}
+            disabled={loading}
+          >
+            {loading ? <Spinner animation="border" size="sm" /> : 'Refresh'}
+          </Button>
         </Card.Header>
-        <Card.Body className="p-0 d-flex flex-column">
-          <Form className="p-3">
+        <Card.Body className="d-flex flex-column">
+          <Form className="mb-3">
             <Form.Group>
               <Form.Control
                 type="text"
@@ -106,19 +114,9 @@ const DeviceList = ({ onDeviceSelect, selectedDeviceId }) => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </Form.Group>
-            <div className="d-flex justify-content-end mt-2">
-              <Button 
-                variant="outline-primary" 
-                size="sm"
-                onClick={fetchDevices}
-                disabled={loading}
-              >
-                {loading ? <Spinner animation="border" size="sm" /> : 'Refresh'}
-              </Button>
-            </div>
           </Form>
 
-          {error && <Alert variant="danger" className="mx-3">{error}</Alert>}
+          {error && <Alert variant="danger">{error}</Alert>}
           
           <div className="flex-grow-1 overflow-auto">
             {loading ? (
@@ -131,42 +129,57 @@ const DeviceList = ({ onDeviceSelect, selectedDeviceId }) => {
                 <p className="text-muted">Please select a company from the dropdown in the navigation bar to view devices</p>
               </div>
             ) : filteredDevices.length === 0 ? (
-              <div className="text-center p-4">
-                <p className="text-muted">No devices found for the selected company</p>
-              </div>
+              <Alert variant="info">
+                No devices found for the selected company. Please add devices from the Settings page.
+              </Alert>
             ) : (
-              <ListGroup variant="flush">
-                {filteredDevices.map((device) => {
-                  const isSelected = selectedDeviceId === device.deviceId;
-                  const hasLocation = device.lastTelemetry && 
-                                    device.lastTelemetry.latitude && 
-                                    device.lastTelemetry.longitude;
-                  
-                  return (
-                    <ListGroup.Item 
-                      key={device.deviceId}
-                      action
-                      active={isSelected}
-                      onClick={() => onDeviceSelect(device)}
-                      className="d-flex flex-column"
-                    >
-                      <div className="d-flex justify-content-between align-items-center">
-                        <strong>{device.name || device.deviceId}</strong>
-                        {hasLocation && <small className="text-success">● Online</small>}
-                        {!hasLocation && <small className="text-secondary">● No data</small>}
-                      </div>
-                      {device.description && (
-                        <small className="text-muted">{device.description}</small>
-                      )}
-                      {hasLocation && (
-                        <small className="mt-1">
-                          Last seen: {new Date(device.lastTelemetry.timestamp).toLocaleString()}
-                        </small>
-                      )}
-                    </ListGroup.Item>
-                  );
-                })}
-              </ListGroup>
+              <div className="table-responsive">
+                <Table responsive striped hover>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Status</th>
+                      <th>Last Seen</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredDevices.map((device) => {
+                      const isSelected = selectedDeviceId === device.deviceId;
+                      const hasLocation = device.lastTelemetry && 
+                                        device.lastTelemetry.latitude && 
+                                        device.lastTelemetry.longitude;
+                      
+                      return (
+                        <tr 
+                          key={device.deviceId}
+                          onClick={() => onDeviceSelect(device)}
+                          className={isSelected ? 'table-primary' : ''}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          <td>
+                            <strong>{device.name || device.deviceId}</strong>
+                            {device.description && (
+                              <div><small className="text-muted">{device.description}</small></div>
+                            )}
+                          </td>
+                          <td>
+                            {hasLocation ? 
+                              <span className="text-success">● Online</span> : 
+                              <span className="text-secondary">● No data</span>
+                            }
+                          </td>
+                          <td>
+                            {hasLocation ? 
+                              new Date(device.lastTelemetry.timestamp).toLocaleString() : 
+                              'Never'
+                            }
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </Table>
+              </div>
             )}
           </div>
         </Card.Body>

@@ -292,8 +292,8 @@ const Metrics = () => {
         </Col>
         <Col md={9} className="h-100">
           <Card className="mb-4">
-            <Card.Header className="d-flex justify-content-between align-items-center bg-primary text-white">
-              <h5 className="mb-0">Telemetry Metrics</h5>
+            <Card.Header className="d-flex justify-content-between align-items-center">
+              <h4 className="mb-0">Telemetry Metrics</h4>
               <Form.Select 
                 style={{ width: 'auto' }} 
                 value={timeRange}
@@ -326,8 +326,10 @@ const Metrics = () => {
               ) : (
                 <div>
                   {/* Display available attributes at the top with improved contrast */}
-                  <Card className="mb-4" border="primary">
-                    <Card.Header className="bg-primary text-white">Available Telemetry Attributes</Card.Header>
+                  <Card className="mb-4">
+                    <Card.Header className="d-flex justify-content-between align-items-center">
+                      <h4 className="mb-0">Available Telemetry Attributes</h4>
+                    </Card.Header>
                     <Card.Body>
                       <div className="d-flex flex-wrap gap-2">
                         {getGraphAttributes().map((attribute, index) => (
@@ -359,8 +361,8 @@ const Metrics = () => {
                   <Row className="mb-4">
                     {getEnabledGraphAttributes().map((attribute, index) => (
                       <Col md={6} key={attribute} className="mb-4">
-                        <Card border="primary">
-                          <Card.Header className="text-capitalize d-flex justify-content-between align-items-center bg-primary text-white">
+                        <Card>
+                          <Card.Header className="text-capitalize d-flex justify-content-between align-items-center">
                             <strong>{attribute}</strong>
                             <Button 
                               variant="danger" 
@@ -380,9 +382,9 @@ const Metrics = () => {
                   </Row>
                   
                   {/* Table showing all telemetry values with improved contrast */}
-                  <Card className="mb-4" border="primary">
-                    <Card.Header className="bg-primary text-white">
-                      <h5 className="mb-0">Telemetry Data Table</h5>
+                  <Card className="mb-4">
+                    <Card.Header className="d-flex justify-content-between align-items-center">
+                      <h4 className="mb-0">Telemetry Data Table</h4>
                     </Card.Header>
                     <Card.Body className="p-0">
                       <div className="table-responsive">
