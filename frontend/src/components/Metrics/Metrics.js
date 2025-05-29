@@ -292,7 +292,7 @@ const Metrics = () => {
         </Col>
         <Col md={9} className="h-100">
           <Card className="mb-4">
-            <Card.Header className={`${isDarkMode ? 'bg-dark' : 'bg-primary'} text-white d-flex justify-content-between align-items-center`}>
+            <Card.Header className="d-flex justify-content-between align-items-center bg-primary text-white">
               <h5 className="mb-0">Telemetry Metrics</h5>
               <Form.Select 
                 style={{ width: 'auto' }} 
@@ -326,8 +326,8 @@ const Metrics = () => {
               ) : (
                 <div>
                   {/* Display available attributes at the top with improved contrast */}
-                  <Card className="mb-4" border={isDarkMode ? 'dark' : 'primary'}>
-                    <Card.Header className={`${isDarkMode ? 'bg-dark' : 'bg-primary'} text-white`}>Available Telemetry Attributes</Card.Header>
+                  <Card className="mb-4" border="primary">
+                    <Card.Header className="bg-primary text-white">Available Telemetry Attributes</Card.Header>
                     <Card.Body>
                       <div className="d-flex flex-wrap gap-2">
                         {getGraphAttributes().map((attribute, index) => (
@@ -359,8 +359,8 @@ const Metrics = () => {
                   <Row className="mb-4">
                     {getEnabledGraphAttributes().map((attribute, index) => (
                       <Col md={6} key={attribute} className="mb-4">
-                        <Card border={isDarkMode ? 'dark' : 'primary'}>
-                          <Card.Header className={`text-capitalize d-flex justify-content-between align-items-center ${isDarkMode ? 'bg-dark' : 'bg-primary'} text-white`}>
+                        <Card border="primary">
+                          <Card.Header className="text-capitalize d-flex justify-content-between align-items-center bg-primary text-white">
                             <strong>{attribute}</strong>
                             <Button 
                               variant="danger" 
@@ -380,8 +380,8 @@ const Metrics = () => {
                   </Row>
                   
                   {/* Table showing all telemetry values with improved contrast */}
-                  <Card className="mb-4" border={isDarkMode ? 'dark' : 'primary'}>
-                    <Card.Header className={`${isDarkMode ? 'bg-dark' : 'bg-primary'} text-white`}>
+                  <Card className="mb-4" border="primary">
+                    <Card.Header className="bg-primary text-white">
                       <h5 className="mb-0">Telemetry Data Table</h5>
                     </Card.Header>
                     <Card.Body className="p-0">
