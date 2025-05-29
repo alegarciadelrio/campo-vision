@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import ThemeContext from '../../context/ThemeContext';
 import { Container, Row, Col, Alert, Spinner, Card, Form, Button } from 'react-bootstrap';
 import { Line } from 'react-chartjs-2';
 import {
@@ -26,6 +27,8 @@ ChartJS.register(
 );
 
 const Metrics = () => {
+  const { theme } = useContext(ThemeContext) || { theme: 'light' };
+  const isDarkMode = theme === 'dark';
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [telemetryData, setTelemetryData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -381,10 +384,10 @@ const Metrics = () => {
                     <Card.Header className="bg-primary text-white">
                       <h5 className="mb-0">Telemetry Data Table</h5>
                     </Card.Header>
-                    <Card.Body>
+                    <Card.Body className="p-0">
                       <div className="table-responsive">
-                        <table className="table table-striped table-hover table-sm">
-                          <thead>
+                        <table className={`table table-striped table-hover table-sm ${isDarkMode ? 'table-dark' : ''}`}>
+                          <thead className={isDarkMode ? 'bg-dark' : ''}>
                             <tr>
                               <th>Timestamp</th>
                               {getGraphAttributes().map(attribute => (
