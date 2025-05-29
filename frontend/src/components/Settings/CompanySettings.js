@@ -112,12 +112,20 @@ const CompanySettings = () => {
   // Delete company
   const handleDeleteSubmit = async () => {
     try {
+      setShowDeleteModal(false); // Close modal immediately
+      setError('Deleting company and associated devices...');
+      
       await deleteCompany(currentCompany.companyId);
       await fetchCompanies();
-      setShowDeleteModal(false);
       setError('');
     } catch (err) {
       setError('Failed to delete company: ' + (err.message || 'Unknown error'));
+      // Try to refresh the companies list anyway
+      try {
+        await fetchCompanies();
+      } catch (fetchErr) {
+        // Ignore fetch errors
+      }
     }
   };
 

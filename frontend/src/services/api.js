@@ -221,7 +221,23 @@ export const updateCompany = async (companyId, companyData) => {
 
 export const deleteCompany = async (companyId) => {
   try {
-    // Send companyId in the request body
+    // First, get all devices for this company
+    const devicesResponse = await getAllDevices(companyId);
+    const devices = devicesResponse.devices || [];
+    
+    // Delete all devices belonging to this company
+    const deviceDeletionPromises = devices.map(device => {
+      return deleteDevice(device.deviceId).catch(error => {
+        // Log but don't throw to ensure we continue with other deletions
+        console.error(`Error deleting device ${device.deviceId}:`, error);
+        return null; // Return null for failed deletions
+      });
+    });
+    
+    // Wait for all device deletions to complete
+    await Promise.all(deviceDeletionPromises);
+    
+    // Now delete the company
     const response = await api.delete('/company', {
       data: { companyId }
     });

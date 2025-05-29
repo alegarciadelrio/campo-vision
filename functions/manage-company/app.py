@@ -329,15 +329,40 @@ def delete_company(event, user_id, cors_headers):
                 })
             }
         
+        # Query all user-company associations for this company
+        user_company_associations = []
+        response = user_company_table.query(
+            IndexName='CompanyIndex',
+            KeyConditionExpression=boto3.dynamodb.conditions.Key('companyId').eq(company_id)
+        )
+        user_company_associations.extend(response.get('Items', []))
+        
+        # Continue querying if there are more results (pagination)
+        while 'LastEvaluatedKey' in response:
+            response = user_company_table.query(
+                IndexName='CompanyIndex',
+                KeyConditionExpression=boto3.dynamodb.conditions.Key('companyId').eq(company_id),
+                ExclusiveStartKey=response['LastEvaluatedKey']
+            )
+            user_company_associations.extend(response.get('Items', []))
+        
+        # Delete all user-company associations for this company
+        for association in user_company_associations:
+            user_company_table.delete_item(
+                Key={
+                    'userId': association['userId'],
+                    'companyId': company_id
+                }
+            )
+            logger.info(f"Deleted user-company association for user {association['userId']} and company {company_id}")
+        
         # Delete company from DynamoDB
         company_table.delete_item(
             Key={'companyId': company_id}
         )
         
         # Note: In a real application, you would also need to:
-        # 1. Delete all user-company associations for this company
-        # 2. Handle or delete all devices associated with this company
-        # 3. Handle or delete all telemetry data associated with this company's devices
+        # 1. Handle or delete all telemetry data associated with this company's devices
         
         return {
             'statusCode': 200,
