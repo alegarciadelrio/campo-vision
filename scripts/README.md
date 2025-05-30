@@ -31,6 +31,7 @@ Customize the amount of data generated:
 ```bash
 python scripts/generate_synthetic_data.py --companies 10 --devices 5 --days 14 --readings 48
 python scripts/generate_synthetic_data.py --companies 2 --devices 2 --days 2 --readings 5 --import-data
+python3 scripts/generate_synthetic_data.py --companies 1 --devices 2 --readings 14 --last-hour --import-data
 ```
 
 #### Import to DynamoDB
