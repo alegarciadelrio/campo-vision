@@ -13,6 +13,7 @@ import os
 import boto3
 from decimal import Decimal
 import argparse
+import time
 
 # Company data
 COMPANY_NAMES = [
@@ -36,11 +37,7 @@ DEVICE_MODELS = {
 
 # Regions with latitude/longitude bounds (approximate)
 REGIONS = {
-    "Midwest US": {"lat": (37.0, 45.0), "lon": (-95.0, -85.0)},
-    "California": {"lat": (32.5, 42.0), "lon": (-124.5, -114.0)},
-    "Brazil Central": {"lat": (-23.0, -15.0), "lon": (-54.0, -43.0)},
-    "Argentina Pampas": {"lat": (-38.0, -32.0), "lon": (-63.0, -57.0)},
-    "Spain Southern": {"lat": (36.0, 40.0), "lon": (-7.0, -1.0)}
+    "Uruguay Florida": {"lat": (-34.1, -33.9), "lon": (-56.25, -56.15)}
 }
 
 def generate_company_data(num_companies):
@@ -168,12 +165,27 @@ def generate_telemetry_data(devices, days_of_data, readings_per_day):
                     else:
                         speed = 0.0  # Stationary devices
                 
+                # Parse the timestamp to calculate TTL (expiration time)
+                try:
+                    # Convert ISO timestamp to datetime object
+                    dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                    
+                    # Calculate expiration time (timestamp + 1 hour)
+                    expiration_time = dt + timedelta(hours=1)
+                    
+                    # Convert to Unix timestamp (seconds since epoch) for DynamoDB TTL
+                    ttl_value = int(expiration_time.timestamp())
+                except Exception:
+                    # Fallback: use current time + 1 hour if there's an issue
+                    ttl_value = int(time.time()) + 3600  # 3600 seconds = 1 hour
+                
                 telemetry = {
                     "deviceId": device_id,
                     "timestamp": timestamp,
                     "latitude": lat,
                     "longitude": lon,
-                    "temperature": temp
+                    "temperature": temp,
+                    "ttl": ttl_value
                 }
                 
                 # Add speed if available
