@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-leaflet';
-import { Container, Card, Row, Col } from 'react-bootstrap';
+import { Container, Card, Row, Col, Form } from 'react-bootstrap';
 import { getTelemetryData } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
 import L from 'leaflet';
@@ -41,6 +41,7 @@ const DeviceMap = ({ selectedDevice, allDevices, initialDeviceId, initialPositio
   const [mapZoom, setMapZoom] = useState(9);
   const [displayedDevices, setDisplayedDevices] = useState([]);
   const [showTrack, setShowTrack] = useState(false); // State to control track visibility
+  const [timeRange, setTimeRange] = useState('1h'); // Default to last hour
   
   // Map style options for dark mode - adjust the darkMapStyle value to change the style
   // Options: 'esri_dark_gray', 'carto_dark', 'esri_world_imagery'
@@ -74,9 +75,29 @@ const DeviceMap = ({ selectedDevice, allDevices, initialDeviceId, initialPositio
     }
     
     try {
-      // Calculate a time range for the last hour
+      // Calculate time range based on selected option
       const endTime = new Date().toISOString();
-      const startTime = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+      let startTime;
+      
+      switch (timeRange) {
+        case '1h':
+          startTime = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+          break;
+        case '6h':
+          startTime = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
+          break;
+        case '24h':
+          startTime = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+          break;
+        case '7d':
+          startTime = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+          break;
+        case '30d':
+          startTime = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+          break;
+        default:
+          startTime = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+      }
       
       // Fetch telemetry data with time range to get historical data for the track
       const response = await getTelemetryData(id, startTime, endTime);
@@ -123,13 +144,12 @@ const DeviceMap = ({ selectedDevice, allDevices, initialDeviceId, initialPositio
     }
   }, [allDevices, selectedDevice]);
   
-  // Effect to update map when selected device changes
+  // Effect to update map when selected device changes or time range changes
   useEffect(() => {
     if (selectedDevice && selectedDevice.deviceId) {
       setDeviceId(selectedDevice.deviceId);
-      setShowTrack(false); // Reset track visibility when selecting a new device
       
-      // Always fetch telemetry data when a device is selected to get the track
+      // Always fetch telemetry data when a device is selected or time range changes
       // but we won't show it until the user clicks "See track"
       fetchDeviceData(selectedDevice.deviceId);
       
@@ -141,6 +161,11 @@ const DeviceMap = ({ selectedDevice, allDevices, initialDeviceId, initialPositio
         setMapZoom(13);
       }
     }
+  }, [selectedDevice, timeRange]);
+  
+  // Reset track visibility when selecting a new device
+  useEffect(() => {
+    setShowTrack(false);
   }, [selectedDevice]);
   
   // Toggle track visibility
@@ -181,6 +206,19 @@ const DeviceMap = ({ selectedDevice, allDevices, initialDeviceId, initialPositio
                   <div className="text-muted me-3">
                     {selectedDevice.name || selectedDevice.deviceId}
                   </div>
+                  <Form.Select 
+                    style={{ width: 'auto' }} 
+                    value={timeRange}
+                    onChange={(e) => setTimeRange(e.target.value)}
+                    className="me-2"
+                    size="sm"
+                  >
+                    <option value="1h">Last Hour</option>
+                    <option value="6h">Last 6 Hours</option>
+                    <option value="24h">Last 24 Hours</option>
+                    <option value="7d">Last 7 Days</option>
+                    <option value="30d">Last 30 Days</option>
+                  </Form.Select>
                   <button 
                     className={`btn btn-sm ${showTrack ? 'btn-secondary' : 'btn-primary'}`}
                     onClick={handleToggleTrack}
