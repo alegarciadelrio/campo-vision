@@ -8,12 +8,15 @@ import csv
 import json
 import random
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import os
 import boto3
 from decimal import Decimal
 import argparse
 import time
+
+# Define timezone (UTC-3)
+LOCAL_TIMEZONE = timezone(timedelta(hours=-3))
 
 # Company data
 COMPANY_NAMES = [
@@ -89,8 +92,15 @@ def generate_device_data(companies, num_devices_per_company):
     
     return devices
 
-def generate_telemetry_data(devices, days_of_data, readings_per_day):
-    """Generate synthetic telemetry data linked to devices"""
+def generate_telemetry_data(devices, days_of_data, readings_per_day, last_hour=False):
+    """Generate synthetic telemetry data linked to devices
+    
+    Args:
+        devices: List of device dictionaries
+        days_of_data: Number of days to generate data for
+        readings_per_day: Number of readings per day for each device
+        last_hour: If True, generate data only for the last hour instead of days
+    """
     telemetry_data = []
     
     for device in devices:
@@ -113,18 +123,26 @@ def generate_telemetry_data(devices, days_of_data, readings_per_day):
         base_lat = device["lastKnownLatitude"]
         base_lon = device["lastKnownLongitude"]
         
-        # Generate telemetry for each day
-        for day in range(days_of_data):
-            date = datetime.now() - timedelta(days=day)
+        # Generate telemetry based on time range
+        if last_hour:
+            # Generate data for the last hour only
+            # Use local timezone (UTC-3) instead of UTC
+            current_time = datetime.now(LOCAL_TIMEZONE)
+            start_time = current_time - timedelta(hours=1)
             
-            # Generate multiple readings per day
-            for reading in range(readings_per_day):
-                # Time progression throughout the day
-                hour = random.randint(6, 20)  # Working hours
-                minute = random.randint(0, 59)
-                second = random.randint(0, 59)
-                microsecond = random.randint(0, 999999)  # Add microseconds for uniqueness
-                timestamp = date.replace(hour=hour, minute=minute, second=second, microsecond=microsecond).isoformat() + "Z"
+            # Calculate number of readings to generate in the last hour
+            # Default to one reading every 5 minutes = 12 readings per hour
+            num_readings = readings_per_day if readings_per_day <= 12 else 12
+            
+            for reading in range(num_readings):
+                # Distribute readings evenly across the last hour
+                minutes_ago = int(60 / num_readings * reading)
+                timestamp_dt = current_time - timedelta(minutes=minutes_ago)
+                # Add some randomness to seconds and microseconds
+                timestamp_dt = timestamp_dt.replace(second=random.randint(0, 59), microsecond=random.randint(0, 999999))
+                # Convert to UTC for storage (adding Z suffix indicates UTC)
+                timestamp_utc = timestamp_dt.astimezone(timezone.utc)
+                timestamp = timestamp_utc.isoformat().replace('+00:00', 'Z')
                 
                 # Simulate movement within a small radius
                 # More movement for mobile devices, less for stationary ones
@@ -153,10 +171,8 @@ def generate_telemetry_data(devices, days_of_data, readings_per_day):
                 
                 if device_type == "Tractor" or device_type == "Harvester":
                     speed = round(random.uniform(0, 30), 1)  # km/h
-                
                 elif device_type == "Drone":
                     speed = round(random.uniform(0, 40), 1)  # km/h
-                
                 # For other device types, speed might be 0 or not applicable
                 elif device_type in ["Sprayer", "Sensor", "Irrigation System"]:
                     # Only some devices have speed
@@ -164,14 +180,14 @@ def generate_telemetry_data(devices, days_of_data, readings_per_day):
                         speed = round(random.uniform(0, 20), 1)  # km/h
                     else:
                         speed = 0.0  # Stationary devices
-                
+                        
                 # Parse the timestamp to calculate TTL (expiration time)
                 try:
                     # Convert ISO timestamp to datetime object
                     dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
                     
                     # Calculate expiration time (timestamp + 1 hour)
-                    expiration_time = dt + timedelta(hours=1)
+                    expiration_time = dt + timedelta(hours=4)
                     
                     # Convert to Unix timestamp (seconds since epoch) for DynamoDB TTL
                     ttl_value = int(expiration_time.timestamp())
@@ -193,6 +209,89 @@ def generate_telemetry_data(devices, days_of_data, readings_per_day):
                     telemetry["speed"] = speed
                 
                 telemetry_data.append(telemetry)
+        else:
+            # Generate telemetry for each day
+            for day in range(days_of_data):
+                # Use local timezone (UTC-3) instead of UTC
+                date = datetime.now(LOCAL_TIMEZONE) - timedelta(days=day)
+                
+                # Generate multiple readings per day
+                for reading in range(readings_per_day):
+                    # Time progression throughout the day
+                    hour = random.randint(6, 20)  # Working hours
+                    minute = random.randint(0, 59)
+                    second = random.randint(0, 59)
+                    microsecond = random.randint(0, 999999)  # Add microseconds for uniqueness
+                    # Create timestamp with local timezone then convert to UTC for storage
+                    local_dt = date.replace(hour=hour, minute=minute, second=second, microsecond=microsecond)
+                    utc_dt = local_dt.astimezone(timezone.utc)
+                    timestamp = utc_dt.isoformat().replace('+00:00', 'Z')
+                    
+                    # Simulate movement within a small radius
+                    # More movement for mobile devices, less for stationary ones
+                    movement_factor = 0.01 if device_type in ["Tractor", "Harvester", "Sprayer", "Drone"] else 0.001
+                    lat = round(base_lat + random.uniform(-movement_factor, movement_factor), 6)
+                    lon = round(base_lon + random.uniform(-movement_factor, movement_factor), 6)
+                    
+                    # Ensure coordinates stay within region bounds
+                    lat = max(region_bounds["lat"][0], min(region_bounds["lat"][1], lat))
+                    lon = max(region_bounds["lon"][0], min(region_bounds["lon"][1], lon))
+                    
+                    # Generate temperature based on device type and random variation
+                    base_temp = 25  # Base temperature in Celsius
+                    if device_type in ["Tractor", "Harvester"]:
+                        # Engines run hot
+                        temp = round(base_temp + random.uniform(10, 30), 1)
+                    elif device_type == "Sensor":
+                        # Ambient temperature with slight variation
+                        temp = round(base_temp + random.uniform(-5, 5), 1)
+                    else:
+                        # Other devices with moderate heat
+                        temp = round(base_temp + random.uniform(0, 15), 1)
+                    
+                    # Add speed field based on device type
+                    speed = None
+                    
+                    if device_type == "Tractor" or device_type == "Harvester":
+                        speed = round(random.uniform(0, 30), 1)  # km/h
+                    elif device_type == "Drone":
+                        speed = round(random.uniform(0, 40), 1)  # km/h
+                    # For other device types, speed might be 0 or not applicable
+                    elif device_type in ["Sprayer", "Sensor", "Irrigation System"]:
+                        # Only some devices have speed
+                        if device_type == "Sprayer":
+                            speed = round(random.uniform(0, 20), 1)  # km/h
+                        else:
+                            speed = 0.0  # Stationary devices
+                
+                    # Parse the timestamp to calculate TTL (expiration time)
+                    try:
+                        # Convert ISO timestamp to datetime object
+                        dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                        
+                        # Calculate expiration time (timestamp + 1 hour)
+                        expiration_time = dt + timedelta(hours=1)
+                        
+                        # Convert to Unix timestamp (seconds since epoch) for DynamoDB TTL
+                        ttl_value = int(expiration_time.timestamp())
+                    except Exception:
+                        # Fallback: use current time + 1 hour if there's an issue
+                        ttl_value = int(time.time()) + 3600  # 3600 seconds = 1 hour
+                    
+                    telemetry = {
+                        "deviceId": device_id,
+                        "timestamp": timestamp,
+                        "latitude": lat,
+                        "longitude": lon,
+                        "temperature": temp,
+                        "ttl": ttl_value
+                    }
+                    
+                    # Add speed if available
+                    if speed is not None:
+                        telemetry["speed"] = speed
+                    
+                    telemetry_data.append(telemetry)
     
     # Sort by timestamp
     telemetry_data.sort(key=lambda x: x["timestamp"])
@@ -285,6 +384,7 @@ if __name__ == "__main__":
     parser.add_argument('--devices', type=int, default=3, help='Number of devices per company')
     parser.add_argument('--days', type=int, default=7, help='Days of telemetry data to generate')
     parser.add_argument('--readings', type=int, default=24, help='Readings per day for each device')
+    parser.add_argument('--last-hour', action='store_true', help='Generate telemetry data for only the last hour (overrides --days)')
     parser.add_argument('--import-data', action='store_true', help='Import data to DynamoDB')
     parser.add_argument('--local-db', action='store_true', help='Use local DynamoDB endpoint')
     parser.add_argument('--user-id', type=str, default="144884f8-2071-7098-27eb-6309b76fc5e6", 
@@ -293,12 +393,15 @@ if __name__ == "__main__":
 
     # Generate data
     print(f"Generating data for {args.companies} companies with {args.devices} devices each...")
-    print(f"Each device will have {args.days} days of data with {args.readings} readings per day")
+    if args.last_hour:
+        print(f"Each device will have telemetry data for the last hour with up to {args.readings} readings")
+    else:
+        print(f"Each device will have {args.days} days of data with {args.readings} readings per day")
     print(f"Companies will be associated with user ID: {args.user_id}")
     
     companies = generate_company_data(args.companies)
     devices = generate_device_data(companies, args.devices)
-    telemetry = generate_telemetry_data(devices, args.days, args.readings)
+    telemetry = generate_telemetry_data(devices, args.days, args.readings, args.last_hour)
     user_company = generate_user_company_data(companies, args.user_id)
     
     # Create data directory

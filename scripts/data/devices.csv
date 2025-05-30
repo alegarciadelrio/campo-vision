@@ -1,7 +1,0 @@
-companyId,deviceId,lastKnownLatitude,lastKnownLongitude,model,name,registeredAt,status,type
-comp-5692e71c-f89f-4cbd-8dd6-aec7229547c5,dev-11273b18-839c-43f9-a515-05f6402c73b3,44.61344,-92.285339,I-750,Irrigation System-1,2024-08-13T15:20:46.318811Z,Inactive,Irrigation System
-comp-5692e71c-f89f-4cbd-8dd6-aec7229547c5,dev-b37938a4-8cd8-4e3b-8625-8501ea3c26e5,42.585099,-87.606132,I-1000,Irrigation System-2,2024-12-22T15:20:46.318833Z,Active,Irrigation System
-comp-5692e71c-f89f-4cbd-8dd6-aec7229547c5,dev-d2665c7e-3653-4688-af1f-fe569f8d8b9e,42.666459,-90.823823,FieldEye,Sensor-3,2024-12-22T15:20:46.318850Z,Active,Sensor
-comp-0eb9a83b-1465-4fc2-bfcb-b795c6fdbcf8,dev-828cc022-d3e7-4fd5-a07f-5afd5f305d75,41.154228,-119.11329,T-2000,Tractor-1,2024-12-05T15:20:46.318867Z,Maintenance,Tractor
-comp-0eb9a83b-1465-4fc2-bfcb-b795c6fdbcf8,dev-48a5efcf-5f55-4b60-9690-ac4fbb346ec0,32.913159,-122.636748,TempTracker,Sensor-2,2025-02-19T15:20:46.318881Z,Inactive,Sensor
-comp-0eb9a83b-1465-4fc2-bfcb-b795c6fdbcf8,dev-ca8aa4f5-f2cd-4b1f-aca1-9ab5852c37aa,38.473985,-116.666697,TempTracker,Sensor-3,2025-05-16T15:20:46.318895Z,Active,Sensor
