@@ -1,0 +1,482 @@
+[
+  {
+    "deviceId": "dev-ca8aa4f5-f2cd-4b1f-aca1-9ab5852c37aa",
+    "timestamp": "2025-05-30T06:33:16.786413Z",
+    "latitude": 38.474508,
+    "longitude": -116.667243,
+    "temperature": 25.8,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-ca8aa4f5-f2cd-4b1f-aca1-9ab5852c37aa",
+    "timestamp": "2025-05-30T06:40:04.955139Z",
+    "latitude": 38.474208,
+    "longitude": -116.665864,
+    "temperature": 24.8,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-b37938a4-8cd8-4e3b-8625-8501ea3c26e5",
+    "timestamp": "2025-05-30T06:52:53.040269Z",
+    "latitude": 42.584909,
+    "longitude": -87.606355,
+    "temperature": 25.9,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-11273b18-839c-43f9-a515-05f6402c73b3",
+    "timestamp": "2025-05-30T08:04:30.825021Z",
+    "latitude": 44.613788,
+    "longitude": -92.284981,
+    "temperature": 28.9,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-828cc022-d3e7-4fd5-a07f-5afd5f305d75",
+    "timestamp": "2025-05-30T08:23:41.907523Z",
+    "latitude": 41.147362,
+    "longitude": -119.120949,
+    "temperature": 47.3,
+    "speed": 3.1
+  },
+  {
+    "deviceId": "dev-48a5efcf-5f55-4b60-9690-ac4fbb346ec0",
+    "timestamp": "2025-05-30T08:33:25.826850Z",
+    "latitude": 32.913705,
+    "longitude": -122.636836,
+    "temperature": 23.8,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-828cc022-d3e7-4fd5-a07f-5afd5f305d75",
+    "timestamp": "2025-05-30T08:38:54.256369Z",
+    "latitude": 41.147719,
+    "longitude": -119.106038,
+    "temperature": 38.4,
+    "speed": 10.2
+  },
+  {
+    "deviceId": "dev-b37938a4-8cd8-4e3b-8625-8501ea3c26e5",
+    "timestamp": "2025-05-30T09:13:27.008743Z",
+    "latitude": 42.585482,
+    "longitude": -87.605502,
+    "temperature": 32.8,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-ca8aa4f5-f2cd-4b1f-aca1-9ab5852c37aa",
+    "timestamp": "2025-05-30T09:14:16.314719Z",
+    "latitude": 38.4744,
+    "longitude": -116.666189,
+    "temperature": 26.7,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-828cc022-d3e7-4fd5-a07f-5afd5f305d75",
+    "timestamp": "2025-05-30T09:20:45.469669Z",
+    "latitude": 41.147234,
+    "longitude": -119.112294,
+    "temperature": 38.7,
+    "speed": 0.5
+  },
+  {
+    "deviceId": "dev-11273b18-839c-43f9-a515-05f6402c73b3",
+    "timestamp": "2025-05-30T09:22:59.465622Z",
+    "latitude": 44.612622,
+    "longitude": -92.285935,
+    "temperature": 35.0,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-11273b18-839c-43f9-a515-05f6402c73b3",
+    "timestamp": "2025-05-30T09:51:13.646981Z",
+    "latitude": 44.613142,
+    "longitude": -92.284777,
+    "temperature": 27.0,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-d2665c7e-3653-4688-af1f-fe569f8d8b9e",
+    "timestamp": "2025-05-30T10:06:31.629273Z",
+    "latitude": 42.665555,
+    "longitude": -90.824573,
+    "temperature": 27.1,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-828cc022-d3e7-4fd5-a07f-5afd5f305d75",
+    "timestamp": "2025-05-30T10:08:38.096350Z",
+    "latitude": 41.160958,
+    "longitude": -119.122795,
+    "temperature": 40.7,
+    "speed": 17.9
+  },
+  {
+    "deviceId": "dev-48a5efcf-5f55-4b60-9690-ac4fbb346ec0",
+    "timestamp": "2025-05-30T10:34:12.443655Z",
+    "latitude": 32.914036,
+    "longitude": -122.636743,
+    "temperature": 24.4,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-48a5efcf-5f55-4b60-9690-ac4fbb346ec0",
+    "timestamp": "2025-05-30T10:40:39.221156Z",
+    "latitude": 32.91246,
+    "longitude": -122.636018,
+    "temperature": 20.7,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-828cc022-d3e7-4fd5-a07f-5afd5f305d75",
+    "timestamp": "2025-05-30T10:43:34.418911Z",
+    "latitude": 41.149685,
+    "longitude": -119.113911,
+    "temperature": 50.2,
+    "speed": 7.8
+  },
+  {
+    "deviceId": "dev-ca8aa4f5-f2cd-4b1f-aca1-9ab5852c37aa",
+    "timestamp": "2025-05-30T11:10:08.092000Z",
+    "latitude": 38.473643,
+    "longitude": -116.667551,
+    "temperature": 21.2,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-b37938a4-8cd8-4e3b-8625-8501ea3c26e5",
+    "timestamp": "2025-05-30T11:22:04.464636Z",
+    "latitude": 42.584864,
+    "longitude": -87.605192,
+    "temperature": 34.8,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-ca8aa4f5-f2cd-4b1f-aca1-9ab5852c37aa",
+    "timestamp": "2025-05-30T11:34:19.693616Z",
+    "latitude": 38.473964,
+    "longitude": -116.667124,
+    "temperature": 29.2,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-828cc022-d3e7-4fd5-a07f-5afd5f305d75",
+    "timestamp": "2025-05-30T11:42:49.935138Z",
+    "latitude": 41.155879,
+    "longitude": -119.109573,
+    "temperature": 50.4,
+    "speed": 1.7
+  },
+  {
+    "deviceId": "dev-ca8aa4f5-f2cd-4b1f-aca1-9ab5852c37aa",
+    "timestamp": "2025-05-30T11:59:05.681835Z",
+    "latitude": 38.474658,
+    "longitude": -116.666509,
+    "temperature": 26.1,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-b37938a4-8cd8-4e3b-8625-8501ea3c26e5",
+    "timestamp": "2025-05-30T12:06:23.334814Z",
+    "latitude": 42.584438,
+    "longitude": -87.605746,
+    "temperature": 29.8,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-d2665c7e-3653-4688-af1f-fe569f8d8b9e",
+    "timestamp": "2025-05-30T12:18:29.235595Z",
+    "latitude": 42.665544,
+    "longitude": -90.824201,
+    "temperature": 23.8,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-11273b18-839c-43f9-a515-05f6402c73b3",
+    "timestamp": "2025-05-30T13:04:06.048124Z",
+    "latitude": 44.614438,
+    "longitude": -92.285291,
+    "temperature": 33.3,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-b37938a4-8cd8-4e3b-8625-8501ea3c26e5",
+    "timestamp": "2025-05-30T13:11:06.824511Z",
+    "latitude": 42.58542,
+    "longitude": -87.606705,
+    "temperature": 26.8,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-48a5efcf-5f55-4b60-9690-ac4fbb346ec0",
+    "timestamp": "2025-05-30T13:14:04.425118Z",
+    "latitude": 32.913688,
+    "longitude": -122.637353,
+    "temperature": 29.1,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-ca8aa4f5-f2cd-4b1f-aca1-9ab5852c37aa",
+    "timestamp": "2025-05-30T13:25:08.592573Z",
+    "latitude": 38.474961,
+    "longitude": -116.665828,
+    "temperature": 25.1,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-ca8aa4f5-f2cd-4b1f-aca1-9ab5852c37aa",
+    "timestamp": "2025-05-30T13:31:36.977861Z",
+    "latitude": 38.473965,
+    "longitude": -116.666005,
+    "temperature": 25.4,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-d2665c7e-3653-4688-af1f-fe569f8d8b9e",
+    "timestamp": "2025-05-30T13:56:28.728621Z",
+    "latitude": 42.666231,
+    "longitude": -90.823414,
+    "temperature": 27.3,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-d2665c7e-3653-4688-af1f-fe569f8d8b9e",
+    "timestamp": "2025-05-30T14:00:56.770522Z",
+    "latitude": 42.666181,
+    "longitude": -90.824103,
+    "temperature": 29.0,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-d2665c7e-3653-4688-af1f-fe569f8d8b9e",
+    "timestamp": "2025-05-30T14:12:45.927444Z",
+    "latitude": 42.665463,
+    "longitude": -90.823267,
+    "temperature": 23.8,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-b37938a4-8cd8-4e3b-8625-8501ea3c26e5",
+    "timestamp": "2025-05-30T14:15:43.703832Z",
+    "latitude": 42.58569,
+    "longitude": -87.605377,
+    "temperature": 26.7,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-828cc022-d3e7-4fd5-a07f-5afd5f305d75",
+    "timestamp": "2025-05-30T14:23:42.639216Z",
+    "latitude": 41.146482,
+    "longitude": -119.106234,
+    "temperature": 48.3,
+    "speed": 13.1
+  },
+  {
+    "deviceId": "dev-48a5efcf-5f55-4b60-9690-ac4fbb346ec0",
+    "timestamp": "2025-05-30T14:37:25.341253Z",
+    "latitude": 32.912769,
+    "longitude": -122.637074,
+    "temperature": 28.6,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-48a5efcf-5f55-4b60-9690-ac4fbb346ec0",
+    "timestamp": "2025-05-30T14:39:59.636402Z",
+    "latitude": 32.914064,
+    "longitude": -122.637041,
+    "temperature": 27.2,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-b37938a4-8cd8-4e3b-8625-8501ea3c26e5",
+    "timestamp": "2025-05-30T15:20:42.765625Z",
+    "latitude": 42.584823,
+    "longitude": -87.605427,
+    "temperature": 28.3,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-11273b18-839c-43f9-a515-05f6402c73b3",
+    "timestamp": "2025-05-30T15:35:33.149673Z",
+    "latitude": 44.61331,
+    "longitude": -92.285034,
+    "temperature": 27.4,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-d2665c7e-3653-4688-af1f-fe569f8d8b9e",
+    "timestamp": "2025-05-30T15:41:33.714480Z",
+    "latitude": 42.66578,
+    "longitude": -90.823454,
+    "temperature": 24.1,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-b37938a4-8cd8-4e3b-8625-8501ea3c26e5",
+    "timestamp": "2025-05-30T15:56:35.728942Z",
+    "latitude": 42.584556,
+    "longitude": -87.605364,
+    "temperature": 39.4,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-48a5efcf-5f55-4b60-9690-ac4fbb346ec0",
+    "timestamp": "2025-05-30T16:10:58.257267Z",
+    "latitude": 32.913107,
+    "longitude": -122.636907,
+    "temperature": 22.7,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-11273b18-839c-43f9-a515-05f6402c73b3",
+    "timestamp": "2025-05-30T16:22:27.614357Z",
+    "latitude": 44.613842,
+    "longitude": -92.285494,
+    "temperature": 39.4,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-828cc022-d3e7-4fd5-a07f-5afd5f305d75",
+    "timestamp": "2025-05-30T16:50:39.003037Z",
+    "latitude": 41.148478,
+    "longitude": -119.12104,
+    "temperature": 54.9,
+    "speed": 21.0
+  },
+  {
+    "deviceId": "dev-b37938a4-8cd8-4e3b-8625-8501ea3c26e5",
+    "timestamp": "2025-05-30T16:51:58.910151Z",
+    "latitude": 42.584823,
+    "longitude": -87.606037,
+    "temperature": 25.2,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-ca8aa4f5-f2cd-4b1f-aca1-9ab5852c37aa",
+    "timestamp": "2025-05-30T17:01:44.049602Z",
+    "latitude": 38.473038,
+    "longitude": -116.666492,
+    "temperature": 23.0,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-48a5efcf-5f55-4b60-9690-ac4fbb346ec0",
+    "timestamp": "2025-05-30T17:07:53.901499Z",
+    "latitude": 32.913095,
+    "longitude": -122.636763,
+    "temperature": 26.4,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-828cc022-d3e7-4fd5-a07f-5afd5f305d75",
+    "timestamp": "2025-05-30T17:43:28.669333Z",
+    "latitude": 41.153497,
+    "longitude": -119.120555,
+    "temperature": 37.1,
+    "speed": 2.2
+  },
+  {
+    "deviceId": "dev-ca8aa4f5-f2cd-4b1f-aca1-9ab5852c37aa",
+    "timestamp": "2025-05-30T17:56:31.643030Z",
+    "latitude": 38.474556,
+    "longitude": -116.666338,
+    "temperature": 24.1,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-11273b18-839c-43f9-a515-05f6402c73b3",
+    "timestamp": "2025-05-30T18:12:27.347309Z",
+    "latitude": 44.613572,
+    "longitude": -92.284953,
+    "temperature": 33.9,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-11273b18-839c-43f9-a515-05f6402c73b3",
+    "timestamp": "2025-05-30T18:33:37.486703Z",
+    "latitude": 44.613648,
+    "longitude": -92.286112,
+    "temperature": 33.1,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-d2665c7e-3653-4688-af1f-fe569f8d8b9e",
+    "timestamp": "2025-05-30T18:37:58.258446Z",
+    "latitude": 42.665937,
+    "longitude": -90.82344,
+    "temperature": 23.9,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-d2665c7e-3653-4688-af1f-fe569f8d8b9e",
+    "timestamp": "2025-05-30T18:40:15.552580Z",
+    "latitude": 42.666381,
+    "longitude": -90.824624,
+    "temperature": 23.1,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-48a5efcf-5f55-4b60-9690-ac4fbb346ec0",
+    "timestamp": "2025-05-30T18:44:58.086402Z",
+    "latitude": 32.912575,
+    "longitude": -122.637622,
+    "temperature": 20.5,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-11273b18-839c-43f9-a515-05f6402c73b3",
+    "timestamp": "2025-05-30T18:47:52.509754Z",
+    "latitude": 44.614395,
+    "longitude": -92.285177,
+    "temperature": 30.4,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-d2665c7e-3653-4688-af1f-fe569f8d8b9e",
+    "timestamp": "2025-05-30T18:56:22.172702Z",
+    "latitude": 42.666221,
+    "longitude": -90.823683,
+    "temperature": 28.2,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-11273b18-839c-43f9-a515-05f6402c73b3",
+    "timestamp": "2025-05-30T18:59:33.828847Z",
+    "latitude": 44.613862,
+    "longitude": -92.286321,
+    "temperature": 25.9,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-828cc022-d3e7-4fd5-a07f-5afd5f305d75",
+    "timestamp": "2025-05-30T19:38:49.168041Z",
+    "latitude": 41.150936,
+    "longitude": -119.116785,
+    "temperature": 45.4,
+    "speed": 20.5
+  },
+  {
+    "deviceId": "dev-d2665c7e-3653-4688-af1f-fe569f8d8b9e",
+    "timestamp": "2025-05-30T20:24:01.642886Z",
+    "latitude": 42.665646,
+    "longitude": -90.82355,
+    "temperature": 26.4,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-48a5efcf-5f55-4b60-9690-ac4fbb346ec0",
+    "timestamp": "2025-05-30T20:49:01.377049Z",
+    "latitude": 32.912287,
+    "longitude": -122.637119,
+    "temperature": 29.0,
+    "speed": 0.0
+  },
+  {
+    "deviceId": "dev-b37938a4-8cd8-4e3b-8625-8501ea3c26e5",
+    "timestamp": "2025-05-30T20:57:11.184201Z",
+    "latitude": 42.584745,
+    "longitude": -87.605366,
+    "temperature": 38.4,
+    "speed": 0.0
+  }
+]

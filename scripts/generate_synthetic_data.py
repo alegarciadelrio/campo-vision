@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Generate synthetic data for Campo Vision DynamoDB tables.
-This script creates related data across Company, Device, and Telemetry tables.
+This script creates related data across Company, Device, Telemetry, and UserCompany tables.
 """
 
 import csv
@@ -220,6 +220,24 @@ def write_to_json(data, filename):
     
     print(f"Created {filename} with {len(data)} records")
 
+def generate_user_company_data(companies, user_id):
+    """Generate user-company relationships for a specific user ID"""
+    user_company_data = []
+    timestamp = datetime.now().isoformat() + "Z"
+    
+    for company in companies:
+        user_company = {
+            "userId": user_id,
+            "companyId": company["companyId"],
+            "role": "admin",  # Assign admin role to the user for all companies
+            "createdBy": user_id,  # Self-created
+            "createdAt": timestamp,
+            "updatedAt": timestamp
+        }
+        user_company_data.append(user_company)
+    
+    return user_company_data
+
 def import_to_dynamodb(data, table_name, endpoint_url=None):
     """Import data to DynamoDB table"""
     try:
@@ -257,15 +275,19 @@ if __name__ == "__main__":
     parser.add_argument('--readings', type=int, default=24, help='Readings per day for each device')
     parser.add_argument('--import-data', action='store_true', help='Import data to DynamoDB')
     parser.add_argument('--local-db', action='store_true', help='Use local DynamoDB endpoint')
+    parser.add_argument('--user-id', type=str, default="144884f8-2071-7098-27eb-6309b76fc5e6", 
+                        help='User ID to associate with companies (default: 144884f8-2071-7098-27eb-6309b76fc5e6)')
     args = parser.parse_args()
 
     # Generate data
     print(f"Generating data for {args.companies} companies with {args.devices} devices each...")
     print(f"Each device will have {args.days} days of data with {args.readings} readings per day")
+    print(f"Companies will be associated with user ID: {args.user_id}")
     
     companies = generate_company_data(args.companies)
     devices = generate_device_data(companies, args.devices)
     telemetry = generate_telemetry_data(devices, args.days, args.readings)
+    user_company = generate_user_company_data(companies, args.user_id)
     
     # Create data directory
     os.makedirs('data', exist_ok=True)
@@ -274,11 +296,13 @@ if __name__ == "__main__":
     write_to_csv(companies, 'data/companies.csv')
     write_to_csv(devices, 'data/devices.csv')
     write_to_csv(telemetry, 'data/telemetry.csv')
+    write_to_csv(user_company, 'data/user_company.csv')
     
     # Write to JSON files (useful for importing to DynamoDB)
     write_to_json(companies, 'data/companies.json')
     write_to_json(devices, 'data/devices.json')
     write_to_json(telemetry, 'data/telemetry.json')
+    write_to_json(user_company, 'data/user_company.json')
     
     # Import to DynamoDB if requested
     if args.import_data:
@@ -288,14 +312,18 @@ if __name__ == "__main__":
         company_table = 'campo-vision-CompanyTable-1VBJGXKYZKXKO'
         device_table = 'campo-vision-DeviceTable-Y0THVJX31BEI'
         telemetry_table = 'campo-vision-TelemetryTable-NGA2PSH16WWQ'
+        user_company_table = 'campo-vision-UserCompanyTable-1JAHRFRT6W5YZ'
         
         # Use local table names if using local DynamoDB
         if args.local_db:
             company_table = 'CompanyTable'
             device_table = 'DeviceTable'
             telemetry_table = 'TelemetryTable'
+            user_company_table = 'UserCompanyTable'
         
         print("Importing data to DynamoDB...")
         import_to_dynamodb(companies, company_table, endpoint_url)
         import_to_dynamodb(devices, device_table, endpoint_url)
         import_to_dynamodb(telemetry, telemetry_table, endpoint_url)
+        import_to_dynamodb(user_company, user_company_table, endpoint_url)
+        print(f"Successfully associated {len(companies)} companies with user ID: {args.user_id}")

@@ -1,0 +1,18 @@
+[
+  {
+    "companyId": "comp-5692e71c-f89f-4cbd-8dd6-aec7229547c5",
+    "name": "AgriTech Solutions",
+    "region": "Midwest US",
+    "contactEmail": "contact@agritechsolutions.com",
+    "subscriptionTier": "Standard",
+    "createdAt": "2024-06-12T15:20:46.318737Z"
+  },
+  {
+    "companyId": "comp-0eb9a83b-1465-4fc2-bfcb-b795c6fdbcf8",
+    "name": "FarmWise Systems",
+    "region": "California",
+    "contactEmail": "contact@farmwisesystems.com",
+    "subscriptionTier": "Premium",
+    "createdAt": "2025-02-02T15:20:46.318777Z"
+  }
+]
