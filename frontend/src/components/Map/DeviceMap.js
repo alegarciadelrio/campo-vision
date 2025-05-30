@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-leaflet';
 import { Container, Card, Row, Col } from 'react-bootstrap';
 import { getTelemetryData } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
@@ -23,10 +23,12 @@ L.Marker.prototype.options.icon = DefaultIcon;
 const FitBounds = ({ positions }) => {
   const map = useMap();
   
-  if (positions.length > 0) {
-    const bounds = L.latLngBounds(positions);
-    map.fitBounds(bounds, { padding: [50, 50] });
-  }
+  useEffect(() => {
+    if (positions && positions.length > 0) {
+      const bounds = L.latLngBounds(positions);
+      map.fitBounds(bounds, { padding: [50, 50] });
+    }
+  }, [map, positions]);
   
   return null;
 };
@@ -38,6 +40,7 @@ const DeviceMap = ({ selectedDevice, allDevices, initialDeviceId, initialPositio
   const [mapCenter, setMapCenter] = useState(initialPosition || [-33.4, -70.9]); // Default to central Chile (lat, lng)
   const [mapZoom, setMapZoom] = useState(9);
   const [displayedDevices, setDisplayedDevices] = useState([]);
+  const [showTrack, setShowTrack] = useState(false); // State to control track visibility
   
   // Map style options for dark mode - adjust the darkMapStyle value to change the style
   // Options: 'esri_dark_gray', 'carto_dark', 'esri_world_imagery'
@@ -71,8 +74,12 @@ const DeviceMap = ({ selectedDevice, allDevices, initialDeviceId, initialPositio
     }
     
     try {
-      // Fetch telemetry data (most recent only)
-      const response = await getTelemetryData(id);
+      // Calculate a time range for the last hour
+      const endTime = new Date().toISOString();
+      const startTime = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+      
+      // Fetch telemetry data with time range to get historical data for the track
+      const response = await getTelemetryData(id, startTime, endTime);
       
       if (response.telemetry.length === 0) {
         console.log('No data found for this device');
@@ -120,6 +127,11 @@ const DeviceMap = ({ selectedDevice, allDevices, initialDeviceId, initialPositio
   useEffect(() => {
     if (selectedDevice && selectedDevice.deviceId) {
       setDeviceId(selectedDevice.deviceId);
+      setShowTrack(false); // Reset track visibility when selecting a new device
+      
+      // Always fetch telemetry data when a device is selected to get the track
+      // but we won't show it until the user clicks "See track"
+      fetchDeviceData(selectedDevice.deviceId);
       
       if (selectedDevice.lastTelemetry && 
           selectedDevice.lastTelemetry.latitude && 
@@ -127,17 +139,35 @@ const DeviceMap = ({ selectedDevice, allDevices, initialDeviceId, initialPositio
         // Set map center to the device's last position
         setMapCenter([selectedDevice.lastTelemetry.latitude, selectedDevice.lastTelemetry.longitude]);
         setMapZoom(13);
-        
-        // We'll still display all devices, but highlight the selected one
-      } else {
-        // If no telemetry data is available, fetch it
-        fetchDeviceData(selectedDevice.deviceId);
-        
-        // Keep the current map view if we can't center on the selected device
-        // This prevents errors when selecting a device without telemetry
       }
     }
   }, [selectedDevice]);
+  
+  // Toggle track visibility
+  const handleToggleTrack = () => {
+    setShowTrack(!showTrack);
+  };
+
+  // Extract positions from telemetry data for the track line
+  const getTrackPositions = () => {
+    if (!deviceTelemetry || deviceTelemetry.length === 0) {
+      return [];
+    }
+    
+    // Sort telemetry data by timestamp (oldest to newest)
+    const sortedTelemetry = [...deviceTelemetry].sort((a, b) => 
+      new Date(a.timestamp) - new Date(b.timestamp)
+    );
+    
+    // Extract positions for the polyline
+    return sortedTelemetry.map(telemetry => {
+      // Ensure we have valid coordinates
+      if (typeof telemetry.latitude === 'number' && typeof telemetry.longitude === 'number') {
+        return [telemetry.latitude, telemetry.longitude];
+      }
+      return null;
+    }).filter(position => position !== null); // Filter out any null positions
+  };
 
   return (
     <Container fluid className="h-100">
@@ -147,8 +177,16 @@ const DeviceMap = ({ selectedDevice, allDevices, initialDeviceId, initialPositio
             <Card.Header className="d-flex justify-content-between align-items-center">
               <h4 className="mb-0">Device Map</h4>
               {selectedDevice && (
-                <div className="text-muted">
-                  {selectedDevice.name || selectedDevice.deviceId}
+                <div className="d-flex align-items-center">
+                  <div className="text-muted me-3">
+                    {selectedDevice.name || selectedDevice.deviceId}
+                  </div>
+                  <button 
+                    className={`btn btn-sm ${showTrack ? 'btn-secondary' : 'btn-primary'}`}
+                    onClick={handleToggleTrack}
+                  >
+                    {showTrack ? 'Hide Track' : 'See Track'}
+                  </button>
                 </div>
               )}
             </Card.Header>
@@ -211,10 +249,11 @@ const DeviceMap = ({ selectedDevice, allDevices, initialDeviceId, initialPositio
                   );
                 })}
                 
-                {/* Display additional telemetry data for selected device if available */}
-                {deviceTelemetry.length > 0 && deviceTelemetry.map((telemetry, index) => {
-                  // Skip the first point as it's already shown in the devices list
-                  if (index === 0) return null;
+                {/* Display additional telemetry data for selected device if showTrack is true */}
+                {showTrack && deviceTelemetry.length > 0 && deviceTelemetry.map((telemetry, index) => {
+                  // Skip the first point (most recent) as it's already shown in the devices list
+                  // and only show historical points when showTrack is true
+                  if (index === 0 || !telemetry.latitude || !telemetry.longitude) return null;
                   
                   return (
                     <Marker 
@@ -234,13 +273,28 @@ const DeviceMap = ({ selectedDevice, allDevices, initialDeviceId, initialPositio
                   );
                 })}
                 
+                {/* Add a polyline to show the device's track only when showTrack is true */}
+                {showTrack && deviceTelemetry.length > 1 && (
+                  <Polyline 
+                    positions={getTrackPositions()} 
+                    pathOptions={{ 
+                      color: theme === 'dark' ? '#00ffff' : '#0000ff',
+                      weight: 3,
+                      opacity: 0.7,
+                      dashArray: theme === 'dark' ? '' : '',
+                    }}
+                  />
+                )}
+                
                 {/* Fit bounds to show all devices or just the selected one */}
                 {displayedDevices.length > 0 && (
                   <FitBounds 
                     positions={
-                      selectedDevice && selectedDevice.lastTelemetry 
-                      ? [[selectedDevice.lastTelemetry.latitude, selectedDevice.lastTelemetry.longitude]] 
-                      : displayedDevices.map(device => [device.lastTelemetry.latitude, device.lastTelemetry.longitude])}
+                      selectedDevice && showTrack && deviceTelemetry.length > 0
+                      ? getTrackPositions()
+                      : selectedDevice && selectedDevice.lastTelemetry
+                        ? [[selectedDevice.lastTelemetry.latitude, selectedDevice.lastTelemetry.longitude]]
+                        : displayedDevices.map(device => [device.lastTelemetry.latitude, device.lastTelemetry.longitude])}
                   />
                 )}
               </MapContainer>
