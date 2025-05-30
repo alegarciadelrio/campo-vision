@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-leaflet';
-import { Container, Card, Row, Col, Form } from 'react-bootstrap';
+import { Container, Card, Row, Col, Button, OverlayTrigger, Popover } from 'react-bootstrap';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
+import { Calendar3, Clock } from 'react-bootstrap-icons';
 import { getTelemetryData } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
 import L from 'leaflet';
@@ -41,7 +44,11 @@ const DeviceMap = ({ selectedDevice, allDevices, initialDeviceId, initialPositio
   const [mapZoom, setMapZoom] = useState(9);
   const [displayedDevices, setDisplayedDevices] = useState([]);
   const [showTrack, setShowTrack] = useState(false); // State to control track visibility
-  const [timeRange, setTimeRange] = useState('1h'); // Default to last hour
+  
+  // Default start date and time to 24 hours ago
+  const [startDate, setStartDate] = useState(new Date(Date.now() - 24 * 60 * 60 * 1000));
+  const [endDate, setEndDate] = useState(new Date()); // Default end date and time to now
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   
   // Map style options for dark mode - adjust the darkMapStyle value to change the style
   // Options: 'esri_dark_gray', 'carto_dark', 'esri_world_imagery'
@@ -75,29 +82,9 @@ const DeviceMap = ({ selectedDevice, allDevices, initialDeviceId, initialPositio
     }
     
     try {
-      // Calculate time range based on selected option
-      const endTime = new Date().toISOString();
-      let startTime;
-      
-      switch (timeRange) {
-        case '1h':
-          startTime = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-          break;
-        case '6h':
-          startTime = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
-          break;
-        case '24h':
-          startTime = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-          break;
-        case '7d':
-          startTime = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-          break;
-        case '30d':
-          startTime = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-          break;
-        default:
-          startTime = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-      }
+      // Use the selected date range
+      const endTime = endDate.toISOString();
+      const startTime = startDate.toISOString();
       
       // Fetch telemetry data with time range to get historical data for the track
       const response = await getTelemetryData(id, startTime, endTime);
@@ -144,12 +131,12 @@ const DeviceMap = ({ selectedDevice, allDevices, initialDeviceId, initialPositio
     }
   }, [allDevices, selectedDevice]);
   
-  // Effect to update map when selected device changes or time range changes
+  // Effect to update map when selected device changes or date range changes
   useEffect(() => {
     if (selectedDevice && selectedDevice.deviceId) {
       setDeviceId(selectedDevice.deviceId);
       
-      // Always fetch telemetry data when a device is selected or time range changes
+      // Always fetch telemetry data when a device is selected or date range changes
       // but we won't show it until the user clicks "See track"
       fetchDeviceData(selectedDevice.deviceId);
       
@@ -161,7 +148,7 @@ const DeviceMap = ({ selectedDevice, allDevices, initialDeviceId, initialPositio
         setMapZoom(13);
       }
     }
-  }, [selectedDevice, timeRange]);
+  }, [selectedDevice, startDate, endDate]);
   
   // Reset track visibility when selecting a new device
   useEffect(() => {
@@ -206,19 +193,156 @@ const DeviceMap = ({ selectedDevice, allDevices, initialDeviceId, initialPositio
                   <div className="text-muted me-3">
                     {selectedDevice.name || selectedDevice.deviceId}
                   </div>
-                  <Form.Select 
-                    style={{ width: 'auto' }} 
-                    value={timeRange}
-                    onChange={(e) => setTimeRange(e.target.value)}
-                    className="me-2"
-                    size="sm"
+                  <OverlayTrigger
+                    trigger="click"
+                    placement="bottom-end"
+                    show={isDatePickerOpen}
+                    onToggle={setIsDatePickerOpen}
+                    rootClose
+                    overlay={
+                      <Popover 
+                        id="date-time-picker-popover"
+                        className={theme === 'dark' ? 'bg-dark text-white' : ''}
+                        style={{ maxWidth: '320px' }}
+                      >
+                        <Popover.Header as="h6" className={theme === 'dark' ? 'bg-dark border-secondary' : ''}>
+                          <strong>Select Date & Time Range</strong>
+                        </Popover.Header>
+                        <Popover.Body className={theme === 'dark' ? 'bg-dark' : ''}>
+                          <div className="d-flex flex-column">
+                            <div className="mb-3">
+                              <div className="d-flex align-items-center mb-1">
+                                <Calendar3 className="me-2" />
+                                <strong>From:</strong>
+                              </div>
+                              <DatePicker
+                                selected={startDate}
+                                onChange={date => setStartDate(date)}
+                                selectsStart
+                                startDate={startDate}
+                                endDate={endDate}
+                                maxDate={endDate}
+                                className={`form-control ${theme === 'dark' ? 'bg-dark text-white border-secondary' : ''}`}
+                                dateFormat="yyyy-MM-dd"
+                                wrapperClassName="w-100"
+                                popperClassName={theme === 'dark' ? 'date-picker-dark' : ''}
+                              />
+                              <div className="d-flex align-items-center mt-2 mb-1">
+                                <Clock className="me-2" />
+                                <strong>Time:</strong>
+                              </div>
+                              <div className="d-flex">
+                                <select 
+                                  className={`form-select me-2 ${theme === 'dark' ? 'bg-dark text-white border-secondary' : ''}`}
+                                  value={startDate.getHours()}
+                                  onChange={(e) => {
+                                    const newDate = new Date(startDate);
+                                    newDate.setHours(parseInt(e.target.value));
+                                    setStartDate(newDate);
+                                  }}
+                                >
+                                  {Array.from({ length: 24 }, (_, i) => (
+                                    <option key={i} value={i}>{i.toString().padStart(2, '0')}</option>
+                                  ))}
+                                </select>
+                                <span className="align-self-center mx-1">:</span>
+                                <select 
+                                  className={`form-select ${theme === 'dark' ? 'bg-dark text-white border-secondary' : ''}`}
+                                  value={startDate.getMinutes()}
+                                  onChange={(e) => {
+                                    const newDate = new Date(startDate);
+                                    newDate.setMinutes(parseInt(e.target.value));
+                                    setStartDate(newDate);
+                                  }}
+                                >
+                                  {[0, 15, 30, 45].map(min => (
+                                    <option key={min} value={min}>{min.toString().padStart(2, '0')}</option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+                            
+                            <div className="mb-3">
+                              <div className="d-flex align-items-center mb-1">
+                                <Calendar3 className="me-2" />
+                                <strong>To:</strong>
+                              </div>
+                              <DatePicker
+                                selected={endDate}
+                                onChange={date => setEndDate(date)}
+                                selectsEnd
+                                startDate={startDate}
+                                endDate={endDate}
+                                minDate={startDate}
+                                maxDate={new Date()}
+                                className={`form-control ${theme === 'dark' ? 'bg-dark text-white border-secondary' : ''}`}
+                                dateFormat="yyyy-MM-dd"
+                                wrapperClassName="w-100"
+                                popperClassName={theme === 'dark' ? 'date-picker-dark' : ''}
+                              />
+                              <div className="d-flex align-items-center mt-2 mb-1">
+                                <Clock className="me-2" />
+                                <strong>Time:</strong>
+                              </div>
+                              <div className="d-flex">
+                                <select 
+                                  className={`form-select me-2 ${theme === 'dark' ? 'bg-dark text-white border-secondary' : ''}`}
+                                  value={endDate.getHours()}
+                                  onChange={(e) => {
+                                    const newDate = new Date(endDate);
+                                    newDate.setHours(parseInt(e.target.value));
+                                    setEndDate(newDate);
+                                  }}
+                                >
+                                  {Array.from({ length: 24 }, (_, i) => (
+                                    <option key={i} value={i}>{i.toString().padStart(2, '0')}</option>
+                                  ))}
+                                </select>
+                                <span className="align-self-center mx-1">:</span>
+                                <select 
+                                  className={`form-select ${theme === 'dark' ? 'bg-dark text-white border-secondary' : ''}`}
+                                  value={endDate.getMinutes()}
+                                  onChange={(e) => {
+                                    const newDate = new Date(endDate);
+                                    newDate.setMinutes(parseInt(e.target.value));
+                                    setEndDate(newDate);
+                                  }}
+                                >
+                                  {[0, 15, 30, 45].map(min => (
+                                    <option key={min} value={min}>{min.toString().padStart(2, '0')}</option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+                            
+                            <div className="d-flex justify-content-between mt-2">
+                              <Button 
+                                variant="primary" 
+                                size="sm" 
+                                onClick={() => {
+                                  fetchDeviceData(selectedDevice.deviceId);
+                                  setIsDatePickerOpen(false);
+                                }}
+                              >
+                                Apply
+                              </Button>
+                            </div>
+                          </div>
+                        </Popover.Body>
+                      </Popover>
+                    }
                   >
-                    <option value="1h">Last Hour</option>
-                    <option value="6h">Last 6 Hours</option>
-                    <option value="24h">Last 24 Hours</option>
-                    <option value="7d">Last 7 Days</option>
-                    <option value="30d">Last 30 Days</option>
-                  </Form.Select>
+                    <Button 
+                      variant="outline-secondary" 
+                      size="sm"
+                      className="me-2 d-flex align-items-center"
+                    >
+                      <Calendar3 className="me-1" />
+                      <span>
+                        {startDate.toLocaleDateString()} {startDate.getHours().toString().padStart(2, '0')}:{startDate.getMinutes().toString().padStart(2, '0')} - {endDate.toLocaleDateString()} {endDate.getHours().toString().padStart(2, '0')}:{endDate.getMinutes().toString().padStart(2, '0')}
+                      </span>
+                    </Button>
+                  </OverlayTrigger>
                   <button 
                     className={`btn btn-sm ${showTrack ? 'btn-secondary' : 'btn-primary'}`}
                     onClick={handleToggleTrack}
