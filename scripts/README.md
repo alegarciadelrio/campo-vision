@@ -4,6 +4,80 @@ This directory contains utility scripts for the Campo Vision project.
 
 ## Scripts Overview
 
+### Device Certificate Creation (`create_device_certificate.py`)
+
+This script generates X.509 certificates for IoT devices and registers them with AWS IoT Core.
+
+#### Basic Usage
+
+```bash
+python create_device_certificate.py --device-id <device-id> [--company-id <company-id>] [--skip-dynamodb]
+```
+
+Example:
+```bash
+python create_device_certificate.py --device-id dev-tractor-123 --company-id comp-a786e492-4883-4ade-b948-a818c2465fd8
+```
+
+The script will:
+1. Create an IoT Thing in AWS IoT Core
+2. Generate device certificates
+3. Attach the certificates to the Thing
+4. Add the Thing to the CampoVisionDevices Thing Group
+5. Register the device in DynamoDB (unless --skip-dynamodb is specified)
+
+### IoT Thing Group Management (`manage_device_groups.py`)
+
+This script manages AWS IoT Thing Groups for Campo Vision devices.
+
+#### Basic Usage
+
+```bash
+# Add a device to a Thing Group
+python manage_device_groups.py --add-device <device-id> [--group-name <group-name>]
+
+# Remove a device from a Thing Group
+python manage_device_groups.py --remove-device <device-id> [--group-name <group-name>]
+
+# List devices in a Thing Group
+python manage_device_groups.py --list-devices [--group-name <group-name>]
+
+# List all Thing Groups
+python manage_device_groups.py --list-groups
+
+# Add all existing devices to a Thing Group
+python manage_device_groups.py --add-all-devices [--group-name <group-name>]
+```
+
+If `--group-name` is not specified, the script will use the default group name from the `.env` file or `CampoVisionDevices`.
+
+### MQTT Telemetry Sender (`send_mqtt_telemetry.py`)
+
+This script sends telemetry data to AWS IoT Core using the MQTT protocol, which is more efficient than the REST API for IoT applications.
+
+#### Basic Usage
+
+```bash
+python send_mqtt_telemetry.py --device-id <device-id> [--interval <seconds>] [--count <number>]
+```
+
+Example:
+```bash
+python send_mqtt_telemetry.py --device-id dev-tractor-123 --interval 5 --count 10
+```
+
+The script will:
+1. Connect to AWS IoT Core using the device's certificates
+2. Generate synthetic telemetry data (location, temperature, etc.)
+3. Send the data to the `campo-vision/telemetry` topic
+4. Repeat at the specified interval for the specified count (or indefinitely if count is not specified)
+
+**Note:** Before using this script, you must first create device certificates using `create_device_certificate.py`.
+
+### REST API Telemetry Sender (`send_telemetry.py`)
+
+This script sends telemetry data to the Campo Vision API using HTTP requests.
+
 ### Synthetic Data Generator (`generate_synthetic_data.py`)
 
 This script creates related synthetic data for:
