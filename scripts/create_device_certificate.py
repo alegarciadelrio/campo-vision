@@ -6,8 +6,8 @@ This script generates X.509 certificates for ESP32 devices and registers them wi
 It can be used by your backend API to provision new devices through the Android app.
 
 Usage:
-  python create_device_certificate.py --device-id <device-id> [--company-id <company-id>] [--skip-dynamodb]
-  python create_device_certificate.py --device-id dev-massey-ferguson-178 --company-id comp-a786e492-4883-4ade-b948-a818c2465fd8
+  python scripts/create_device_certificate.py --device-id <device-id> [--company-id <company-id>] [--skip-dynamodb]
+  python scripts/create_device_certificate.py --device-id dev-massey-ferguson-178 --company-id comp-a786e492-4883-4ade-b948-a818c2465fd8
 """
 
 import argparse

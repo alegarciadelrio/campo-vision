@@ -330,6 +330,23 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref DeviceTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - iot:CreateThing
+                - iot:UpdateThing
+                - iot:DeleteThing
+                - iot:DescribeThing
+                - iot:ListThingPrincipals
+                - iot:DetachThingPrincipal
+                - iot:ListAttachedPolicies
+                - iot:DetachPolicy
+                - iot:UpdateCertificate
+                - iot:DeleteCertificate
+              Resource: 
+                - !Sub "arn:aws:iot:${AWS::Region}:${AWS::AccountId}:thing/*"
+                - !Sub "arn:aws:iot:${AWS::Region}:${AWS::AccountId}:cert/*"
+                - !Sub "arn:aws:iot:${AWS::Region}:${AWS::AccountId}:policy/*"
 
   # DynamoDB Table
   TelemetryTable:

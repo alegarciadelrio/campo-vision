@@ -14,6 +14,9 @@ logger.setLevel(logging.INFO)
 dynamodb = boto3.resource('dynamodb')
 device_table = dynamodb.Table(os.environ.get('DEVICE_TABLE'))
 
+# Initialize AWS IoT client
+iot_client = boto3.client('iot')
+
 def lambda_handler(event, context):
     """
     Lambda function to manage devices (create, update, delete)
@@ -71,7 +74,7 @@ def lambda_handler(event, context):
 
 def register_device(event, user_id):
     """
-    Register a new device
+    Register a new device in DynamoDB and AWS IoT
     """
     try:
         # Parse request body
@@ -127,12 +130,39 @@ def register_device(event, user_id):
         # Save to DynamoDB
         device_table.put_item(Item=device_item)
         
+        # Register device in AWS IoT
+        iot_registration_success = True
+        iot_error_message = None
+        try:
+            # Create a thing in AWS IoT
+            thing_response = iot_client.create_thing(
+                thingName=device_id,
+                attributePayload={
+                    'attributes': {
+                        'companyId': company_id,
+                        'name': body.get('name', ''),
+                        'description': body.get('description', '')
+                    }
+                }
+            )
+            logger.info(f"Successfully registered device {device_id} in AWS IoT: {thing_response}")
+        except ClientError as e:
+            iot_registration_success = False
+            iot_error_message = str(e)
+            logger.error(f"Error registering device in AWS IoT: {iot_error_message}")
+            # We continue with the operation as the device is already in DynamoDB
+        
+        response_message = 'Device registered successfully'
+        if not iot_registration_success:
+            response_message += f', but failed to register in AWS IoT: {iot_error_message}'
+        
         return {
             'statusCode': 201,
             'headers': {'Access-Control-Allow-Origin': '*'},
             'body': json.dumps({
-                'message': 'Device registered successfully',
-                'device': device_item
+                'message': response_message,
+                'device': device_item,
+                'iotRegistrationSuccess': iot_registration_success
             })
         }
     
@@ -258,7 +288,7 @@ def update_device(event, user_id):
 
 def delete_device(event, user_id):
     """
-    Delete a device
+    Delete a device from DynamoDB and AWS IoT
     """
     try:
         # Get device ID from query parameters
@@ -284,6 +314,75 @@ def delete_device(event, user_id):
         
         # Delete from DynamoDB
         device_table.delete_item(Key={'deviceId': device_id})
+        
+        # Delete from AWS IoT
+        try:
+            # First, find all principals (certificates) attached to the thing
+            principals = []
+            try:
+                principals_response = iot_client.list_thing_principals(thingName=device_id)
+                principals = principals_response.get('principals', [])
+                logger.info(f"Found {len(principals)} principals attached to device {device_id}")
+            except ClientError as e:
+                logger.warning(f"Error listing principals for device {device_id}: {str(e)}")
+            
+            # Detach and delete each principal (certificate)
+            for principal in principals:
+                try:
+                    # Get certificate ID from ARN
+                    cert_id = principal.split('/')[-1]
+                    
+                    # Detach the certificate from the thing
+                    logger.info(f"Detaching certificate {cert_id} from device {device_id}")
+                    iot_client.detach_thing_principal(
+                        thingName=device_id,
+                        principal=principal
+                    )
+                    
+                    # Find and detach any policies attached to the certificate
+                    try:
+                        policies_response = iot_client.list_attached_policies(
+                            target=principal
+                        )
+                        
+                        for policy in policies_response.get('policies', []):
+                            policy_name = policy.get('policyName')
+                            logger.info(f"Detaching policy {policy_name} from certificate {cert_id}")
+                            iot_client.detach_policy(
+                                policyName=policy_name,
+                                target=principal
+                            )
+                    except ClientError as e:
+                        logger.warning(f"Error detaching policies from certificate {cert_id}: {str(e)}")
+                    
+                    # Deactivate the certificate
+                    logger.info(f"Deactivating certificate {cert_id}")
+                    iot_client.update_certificate(
+                        certificateId=cert_id,
+                        newStatus='INACTIVE'
+                    )
+                    
+                    # Delete the certificate
+                    logger.info(f"Deleting certificate {cert_id}")
+                    iot_client.delete_certificate(
+                        certificateId=cert_id,
+                        forceDelete=True
+                    )
+                except ClientError as e:
+                    logger.warning(f"Error processing certificate {principal}: {str(e)}")
+            
+            # Now delete the thing
+            iot_client.delete_thing(thingName=device_id)
+            logger.info(f"Successfully deleted device {device_id} from AWS IoT")
+        except ClientError as e:
+            # If the thing doesn't exist in IoT, log the error but don't fail the operation
+            error_code = e.response.get('Error', {}).get('Code')
+            if error_code == 'ResourceNotFoundException':
+                logger.warning(f"Device {device_id} not found in AWS IoT, continuing with deletion")
+            else:
+                logger.error(f"Error deleting device from AWS IoT: {str(e)}")
+                # We don't return an error here as we've already deleted from DynamoDB
+                # and we want the operation to be considered successful
         
         return {
             'statusCode': 200,
