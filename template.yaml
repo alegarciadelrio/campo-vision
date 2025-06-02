@@ -573,7 +573,8 @@ Resources:
             latitude,
             longitude,
             temperature,
-            speed
+            speed,
+            ttl
           FROM 'campo-vision/telemetry'
         Actions:
           - DynamoDBv2:

@@ -7,10 +7,10 @@ It uses device certificates for authentication and can generate synthetic data
 for testing purposes.
 
 Usage:
-  python scripts/send_mqtt_telemetry.py --device-id <device-id> [--interval <seconds>] [--count <number>]
+  python scripts/send_mqtt_telemetry.py --device-id <device-id> [--interval <seconds>] [--count <number>] [--ttl <days>]
   
 Example:
-  python scripts/send_mqtt_telemetry.py --device-id dev-massey-ferguson-178 --interval 5 --count 10
+  python scripts/send_mqtt_telemetry.py --device-id dev-massey-ferguson-178 --interval 5 --count 10 --ttl 30
 """
 
 import argparse
@@ -20,7 +20,7 @@ import os
 import random
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from dotenv import load_dotenv
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
@@ -111,12 +111,13 @@ def setup_mqtt_client(device_id):
     
     return mqtt_client
 
-def generate_telemetry_data(device_id):
+def generate_telemetry_data(device_id, ttl_days=None):
     """
     Generate synthetic telemetry data for testing
     
     Args:
         device_id (str): Device ID
+        ttl_days (int, optional): Time to live in days for the telemetry data
         
     Returns:
         dict: Telemetry data payload
@@ -141,9 +142,14 @@ def generate_telemetry_data(device_id):
         "timestamp": datetime.utcnow().isoformat() + 'Z'
     }
     
+    # Add TTL if specified (in epoch seconds format for DynamoDB TTL)
+    if ttl_days is not None:
+        expiry_date = datetime.utcnow() + timedelta(days=ttl_days)
+        telemetry["ttl"] = int(expiry_date.timestamp())
+    
     return telemetry
 
-def send_telemetry(mqtt_client, device_id, interval=5, count=None):
+def send_telemetry(mqtt_client, device_id, interval=5, count=None, ttl_days=None):
     """
     Send telemetry data at specified intervals
     
@@ -173,7 +179,7 @@ def send_telemetry(mqtt_client, device_id, interval=5, count=None):
     try:
         while count is None or sent_count < count:
             # Generate telemetry data
-            telemetry = generate_telemetry_data(payload_device_id)
+            telemetry = generate_telemetry_data(payload_device_id, ttl_days)
             
             # Convert to JSON
             payload = json.dumps(telemetry)
@@ -203,7 +209,7 @@ def send_telemetry(mqtt_client, device_id, interval=5, count=None):
         logger.info("\nSummary:")
         logger.info(f"- Sent {sent_count} telemetry messages to topic '{topic}'")
         logger.info(f"- Device ID: {payload_device_id}")
-        logger.info(f"- Data format: Individual fields (deviceId, latitude, longitude, temperature, speed)")
+        logger.info(f"- Data format: Individual fields (deviceId, latitude, longitude, temperature, speed{', ttl' if ttl_days else ''})")
         logger.info("\nCheck your DynamoDB table to verify the data format.")
         logger.info("The IoT Rule should have stored the data with individual fields rather than a nested JSON object.")
 
@@ -214,6 +220,7 @@ def main():
     parser.add_argument('--device-id', required=True, help='Device ID to use for sending telemetry')
     parser.add_argument('--interval', type=int, default=5, help='Interval between messages in seconds (default: 5)')
     parser.add_argument('--count', type=int, help='Number of messages to send (default: infinite)')
+    parser.add_argument('--ttl', type=int, help='Time to live in days for the telemetry data (default: no TTL)')
     
     args = parser.parse_args()
     
@@ -222,7 +229,7 @@ def main():
         mqtt_client = setup_mqtt_client(args.device_id)
         
         # Send telemetry data
-        send_telemetry(mqtt_client, args.device_id, args.interval, args.count)
+        send_telemetry(mqtt_client, args.device_id, args.interval, args.count, args.ttl)
         
     except Exception as e:
         logger.error(f"Error: {str(e)}")
