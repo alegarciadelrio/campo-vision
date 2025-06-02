@@ -6,7 +6,8 @@ This script generates X.509 certificates for ESP32 devices and registers them wi
 It can be used by your backend API to provision new devices through the Android app.
 
 Usage:
-  python create-device-certificate.py --device-id <device-id> [--company-id <company-id>] [--skip-dynamodb]
+  python create_device_certificate.py --device-id <device-id> [--company-id <company-id>] [--skip-dynamodb]
+  python create_device_certificate.py --device-id dev-massey-ferguson-178 --company-id comp-a786e492-4883-4ade-b948-a818c2465fd8
 """
 
 import argparse
@@ -139,6 +140,21 @@ def create_certificate(device_id, company_id=None):
             forceDelete=True
         )
         raise Exception(f"Error attaching certificate to thing: {str(e)}")
+    
+    # Add thing to the Campo Vision Thing Group
+    try:
+        # Get group name from environment or use default
+        group_name = os.environ.get('IOT_THING_GROUP', 'CampoVisionDevices')
+        
+        # Add thing to group
+        iot_client.add_thing_to_thing_group(
+            thingName=thing_name,
+            thingGroupName=group_name
+        )
+        print(f"Added device {thing_name} to group {group_name}")
+    except ClientError as e:
+        print(f"Warning: Could not add device to thing group: {str(e)}")
+        # We don't raise an exception here as this is not critical for device creation
     
     # Save certificates to files
     save_certificate_files(device_id, certificate_pem, private_key)
