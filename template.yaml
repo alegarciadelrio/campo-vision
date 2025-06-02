@@ -486,6 +486,17 @@ Resources:
         SigningProtocol: sigv4
 
   # IoT Core Resources
+  CampoVisionThingGroup:
+    Type: AWS::IoT::ThingGroup
+    Properties:
+      ThingGroupName: CampoVisionDevices
+      ThingGroupProperties:
+        ThingGroupDescription: "Group for all Campo Vision agricultural devices"
+        AttributePayload:
+          Attributes:
+            type: "agricultural"
+            project: "campo-vision"
+
   CampoVisionIoTPolicy:
     Type: AWS::IoT::Policy
     Properties:
@@ -541,20 +552,17 @@ Resources:
         Sql: >-
           SELECT 
             deviceId, 
-            timestamp() as timestamp,
+            timestamp,
             latitude,
             longitude,
             temperature,
-            * 
+            speed
           FROM 'campo-vision/telemetry'
         Actions:
-          - DynamoDB:
-              TableName: !Ref TelemetryTable
-              HashKeyField: deviceId
-              HashKeyValue: "${deviceId}"
-              RangeKeyField: timestamp
-              RangeKeyValue: "${timestamp}"
+          - DynamoDBv2:
               RoleArn: !GetAtt IoTToDynamoDBRole.Arn
+              PutItem:
+                TableName: !Ref TelemetryTable
         ErrorAction:
           CloudwatchLogs:
             LogGroupName: !Ref IoTErrorLogGroup
@@ -621,3 +629,6 @@ Outputs:
   CampoVisionIoTPolicy:
     Description: "IoT Policy for device authentication"
     Value: !Ref CampoVisionIoTPolicy
+  CampoVisionThingGroup:
+    Description: "IoT Thing Group for Campo Vision devices"
+    Value: !Ref CampoVisionThingGroup
