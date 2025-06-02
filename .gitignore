@@ -220,3 +220,6 @@ yarn-error.log*
 .env.development
 .env.test
 .env.production
+
+# Ignore certificates folder
+certificates/
