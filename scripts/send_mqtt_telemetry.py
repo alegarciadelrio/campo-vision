@@ -7,10 +7,10 @@ It uses device certificates for authentication and can generate synthetic data
 for testing purposes.
 
 Usage:
-  python send_mqtt_telemetry.py --device-id <device-id> [--interval <seconds>] [--count <number>]
+  python scripts/send_mqtt_telemetry.py --device-id <device-id> [--interval <seconds>] [--count <number>]
   
 Example:
-  python send_mqtt_telemetry.py --device-id dev-massey-ferguson-178 --interval 5 --count 10
+  python scripts/send_mqtt_telemetry.py --device-id dev-massey-ferguson-178 --interval 5 --count 10
 """
 
 import argparse
