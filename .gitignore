@@ -179,8 +179,6 @@ samconfig.toml
 
 # AWS credentials and config
 .aws/
-credentials
-config
 
 # Authentication tokens and sensitive data
 auth_tokens.json
