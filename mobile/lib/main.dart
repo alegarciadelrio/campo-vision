@@ -1,6 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:provider/provider.dart';
 
-void main() {
+import 'context/auth_context.dart';
+import 'context/theme_context.dart';
+import 'screens/login_screen.dart';
+import 'screens/dashboard_screen.dart';
+
+void main() async {
+  // Ensure Flutter is initialized
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Load environment variables
+  try {
+    // Try loading with default path first
+    await dotenv.load();
+    print('Environment variables loaded successfully from default path');
+  } catch (e) {
+    print('Error loading .env from default path: $e');
+    
+    // Try with explicit path as fallback
+    try {
+      await dotenv.load(fileName: '.env');
+      print('Environment variables loaded successfully with explicit path');
+    } catch (e) {
+      print('Error loading .env with explicit path: $e');
+    }
+  }
+  
+  // Debug environment variables
+  if (dotenv.env.isNotEmpty) {
+    print('Environment variables loaded:');
+    print('COGNITO_REGION: ${dotenv.env['COGNITO_REGION']}');
+    print('USER_POOL_ID: ${dotenv.env['USER_POOL_ID']}');
+    // Don't print client ID for security reasons
+  } else {
+    print('WARNING: No environment variables loaded!');
+  }
+  
   runApp(const CampoVisionApp());
 }
 
@@ -9,33 +46,52 @@ class CampoVisionApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Campo Vision',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
-        useMaterial3: true,
-      ),
-      home: const HomePage(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthContext()),
+        ChangeNotifierProvider(create: (_) => ThemeContext()),
+      ],
+      child: Consumer<ThemeContext>(
+        builder: (context, themeContext, _) => MaterialApp(
+        title: 'Campo Vision',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
+          useMaterial3: true,
+        ),
+        darkTheme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.green,
+            brightness: Brightness.dark,
+          ),
+          useMaterial3: true,
+        ),
+        themeMode: themeContext.themeMode,
+        home: const AuthWrapper(),
+      )),
     );
   }
 }
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('Campo Vision'),
-      ),
-      body: const Center(
-        child: Text(
-          'Hello World!',
-          style: TextStyle(fontSize: 24),
+    final authContext = Provider.of<AuthContext>(context);
+    
+    // Show loading indicator while checking authentication status
+    if (authContext.isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
         ),
-      ),
-    );
+      );
+    }
+    
+    // Navigate to appropriate screen based on authentication status
+    return authContext.isAuthenticated 
+        ? const DashboardScreen() 
+        : const LoginScreen();
   }
 }
