@@ -2,8 +2,39 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
+import 'dart:math' show log, ln2;
 import '../models/device.dart';
 import '../providers/dashboard_provider.dart';
+
+// Singleton to access DeviceMap functionality from anywhere
+class DeviceMapController {
+  static final DeviceMapController _instance = DeviceMapController._internal();
+  
+  factory DeviceMapController() {
+    return _instance;
+  }
+  
+  DeviceMapController._internal();
+  
+  _DeviceMapState? _mapState;
+  
+  void _registerState(_DeviceMapState state) {
+    _mapState = state;
+  }
+  
+  void _unregisterState(_DeviceMapState state) {
+    if (_mapState == state) {
+      _mapState = null;
+    }
+  }
+  
+  // Public method to focus on a device
+  void focusOnDevice(Device device) {
+    if (_mapState != null) {
+      _mapState!.focusOnDevice(device);
+    }
+  }
+}
 
 class DeviceMap extends StatefulWidget {
   const DeviceMap({Key? key}) : super(key: key);
@@ -18,6 +49,100 @@ class _DeviceMapState extends State<DeviceMap> {
   bool _showTrack = false;
   DateTime _startDate = DateTime.now().subtract(const Duration(hours: 24));
   DateTime _endDate = DateTime.now();
+  final DeviceMapController _controller = DeviceMapController();
+  
+  @override
+  void initState() {
+    super.initState();
+    // Register this state with the controller
+    _controller._registerState(this);
+    
+    // Add a post-frame callback to fit all devices after the first build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fitAllDevices();
+    });
+  }
+  
+  // Method to fit all devices on the map
+  void _fitAllDevices() {
+    final dashboardProvider = Provider.of<DashboardProvider>(context, listen: false);
+    if (dashboardProvider.devicesWithLocation.isEmpty) return;
+    
+    // Collect all device locations
+    final points = <LatLng>[];
+    for (final device in dashboardProvider.devicesWithLocation) {
+      if (device.hasLocation()) {
+        points.add(LatLng(
+          device.lastTelemetry!.latitude!,
+          device.lastTelemetry!.longitude!,
+        ));
+      }
+    }
+    
+    if (points.isEmpty) return;
+    
+    // If there's only one point, center on it with a reasonable zoom
+    if (points.length == 1) {
+      _mapController.move(points.first, 10.0); // Lower zoom level (10 instead of 13)
+      return;
+    }
+    
+    // Calculate bounds to fit all points
+    double minLat = 90.0;
+    double maxLat = -90.0;
+    double minLng = 180.0;
+    double maxLng = -180.0;
+    
+    for (final point in points) {
+      minLat = point.latitude < minLat ? point.latitude : minLat;
+      maxLat = point.latitude > maxLat ? point.latitude : maxLat;
+      minLng = point.longitude < minLng ? point.longitude : minLng;
+      maxLng = point.longitude > maxLng ? point.longitude : maxLng;
+    }
+    
+    // Calculate center point
+    final centerLat = (minLat + maxLat) / 2;
+    final centerLng = (minLng + maxLng) / 2;
+    
+    // Calculate the distance between the furthest points
+    final latDistance = (maxLat - minLat).abs();
+    final lngDistance = (maxLng - minLng).abs();
+    
+    // Use a simple heuristic for zoom level based on the distance
+    // The larger the distance, the smaller the zoom level
+    double zoom = 12.0; // Default zoom
+    
+    if (latDistance > 0.5 || lngDistance > 0.5) {
+      zoom = 9.0;
+    }
+    if (latDistance > 1.0 || lngDistance > 1.0) {
+      zoom = 8.0;
+    }
+    if (latDistance > 2.0 || lngDistance > 2.0) {
+      zoom = 7.0;
+    }
+    if (latDistance > 5.0 || lngDistance > 5.0) {
+      zoom = 6.0;
+    }
+    if (latDistance > 10.0 || lngDistance > 10.0) {
+      zoom = 5.0;
+    }
+    if (latDistance > 20.0 || lngDistance > 20.0) {
+      zoom = 4.0;
+    }
+    
+    // Move the map to show all points with a lower zoom level for better visibility
+    _mapController.move(LatLng(centerLat, centerLng), zoom);
+  }
+  
+  // This method is no longer used - we're using a simpler heuristic approach instead
+  
+  @override
+  void dispose() {
+    // Unregister this state when disposed
+    _controller._unregisterState(this);
+    super.dispose();
+  }
   
   @override
   Widget build(BuildContext context) {
@@ -178,7 +303,14 @@ class _DeviceMapState extends State<DeviceMap> {
 
   // Helper method to build device markers
   List<Marker> _buildDeviceMarkers(DashboardProvider dashboardProvider) {
-    return dashboardProvider.devicesWithLocation.map((device) {
+    // If a device is selected, only show that device
+    final devices = dashboardProvider.selectedDevice != null
+        ? dashboardProvider.devicesWithLocation
+            .where((d) => d.deviceId == dashboardProvider.selectedDevice!.deviceId)
+            .toList()
+        : dashboardProvider.devicesWithLocation;
+            
+    return devices.map((device) {
       // Skip devices without location data
       if (!device.hasLocation()) return const Marker(point: LatLng(0, 0), child: SizedBox.shrink());
       
@@ -194,6 +326,7 @@ class _DeviceMapState extends State<DeviceMap> {
         child: GestureDetector(
           onTap: () {
             dashboardProvider.selectDevice(device);
+            _focusOnDeviceInternal(device);
             _showDeviceInfo(context, device);
           },
           child: Container(
@@ -267,6 +400,34 @@ class _DeviceMapState extends State<DeviceMap> {
     }
     
     return markers;
+  }
+  
+  // Public method to focus on a device that can be called from outside
+  void focusOnDevice(Device device) {
+    if (!device.hasLocation()) return;
+    
+    // Select the device in the provider
+    final dashboardProvider = Provider.of<DashboardProvider>(context, listen: false);
+    dashboardProvider.selectDevice(device);
+    
+    // Ensure the device is shown on the map
+    setState(() {
+      // This will trigger a rebuild with the filtered device list
+    });
+    
+    // Focus the map on the device
+    _focusOnDeviceInternal(device);
+  }
+  
+  // Internal method to focus map on a specific device
+  void _focusOnDeviceInternal(Device device) {
+    if (!device.hasLocation()) return;
+    
+    // Animate to the device's position with a higher zoom level
+    _mapController.move(
+      LatLng(device.lastTelemetry!.latitude!, device.lastTelemetry!.longitude!),
+      15.0, // Higher zoom level for better focus
+    );
   }
   
   // Toggle track visibility

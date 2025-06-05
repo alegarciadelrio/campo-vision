@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/device.dart';
 import '../providers/dashboard_provider.dart';
+import 'device_map.dart';
 
 class DeviceList extends StatefulWidget {
   const DeviceList({Key? key}) : super(key: key);
@@ -180,7 +181,14 @@ class _DeviceListState extends State<DeviceList> {
           ),
           selected: isSelected,
           selectedTileColor: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
-          onTap: () => provider.selectDevice(device),
+          onTap: () {
+            provider.selectDevice(device);
+            
+            // Focus the map on this device if it has location data
+            if (device.hasLocation()) {
+              DeviceMapController().focusOnDevice(device);
+            }
+          },
         );
       },
     );
