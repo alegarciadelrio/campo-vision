@@ -39,8 +39,23 @@ class _DeviceMapState extends State<DeviceMap> {
         }
         // Otherwise if we have devices with location, fit the map to show all of them
         else if (dashboardProvider.devicesWithLocation.isNotEmpty) {
-          // We'll handle this with the map bounds
-          mapZoom = 9.0;
+          // Calculate the center of all devices with location
+          double sumLat = 0;
+          double sumLng = 0;
+          int count = 0;
+          
+          for (final device in dashboardProvider.devicesWithLocation) {
+            if (device.hasLocation()) {
+              sumLat += device.lastTelemetry!.latitude!;
+              sumLng += device.lastTelemetry!.longitude!;
+              count++;
+            }
+          }
+          
+          if (count > 0) {
+            mapCenter = LatLng(sumLat / count, sumLng / count);
+            mapZoom = 9.0;
+          }
         }
         
         return Card(
@@ -105,8 +120,8 @@ class _DeviceMapState extends State<DeviceMap> {
                     children: [
                       // Base tile layer
                       TileLayer(
-                        urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                        subdomains: const ['a', 'b', 'c'],
+                        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        // Removed subdomains to avoid OSM warning
                         userAgentPackageName: 'com.tambreit.campovision',
                       ),
                       
@@ -116,7 +131,7 @@ class _DeviceMapState extends State<DeviceMap> {
                       ),
                       
                       // Telemetry track polyline (only shown when a device is selected and track is enabled)
-                      if (dashboardProvider.selectedDevice != null && _showTrack)
+                      if (dashboardProvider.selectedDevice != null && _showTrack && _buildTrackPoints(dashboardProvider).isNotEmpty)
                         PolylineLayer(
                           polylines: [
                             Polyline(
@@ -203,13 +218,19 @@ class _DeviceMapState extends State<DeviceMap> {
   // Helper method to build track points from telemetry data
   List<LatLng> _buildTrackPoints(DashboardProvider dashboardProvider) {
     if (dashboardProvider.selectedDevice == null || _deviceTelemetry.isEmpty) {
+      // Return a list with at least one point to avoid LatLngBounds error
+      // when creating bounds from an empty list
       return [];
     }
     
-    return _deviceTelemetry
+    final points = _deviceTelemetry
         .where((t) => t.latitude != null && t.longitude != null)
         .map((t) => LatLng(t.latitude!, t.longitude!))
         .toList();
+        
+    // If no valid points were found, return an empty list
+    // The PolylineLayer will handle this correctly
+    return points;
   }
   
   // Build markers for track points
