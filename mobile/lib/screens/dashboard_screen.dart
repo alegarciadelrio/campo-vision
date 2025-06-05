@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../context/auth_context.dart';
 import '../context/theme_context.dart';
 import '../providers/dashboard_provider.dart';
+import 'settings_screen.dart';
 import '../widgets/company_selector.dart';
 import '../widgets/device_list.dart';
 import '../widgets/device_map.dart';
@@ -35,6 +36,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         actions: [
+          // Settings button
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const SettingsScreen()),
+            ),
+            tooltip: 'Settings',
+          ),
           // Theme toggle button
           Consumer<ThemeContext>(
             builder: (context, themeContext, _) => IconButton(

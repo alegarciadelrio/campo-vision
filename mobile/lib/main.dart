@@ -5,8 +5,10 @@ import 'config/config.dart';
 import 'context/auth_context.dart';
 import 'context/theme_context.dart';
 import 'providers/dashboard_provider.dart';
+import 'providers/settings_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/dashboard_screen.dart';
+import 'screens/settings_screen.dart';
 
 void main() async {
   // Ensure Flutter is initialized
@@ -54,6 +56,7 @@ class CampoVisionApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthContext()),
         ChangeNotifierProvider(create: (_) => ThemeContext()),
         ChangeNotifierProvider(create: (_) => DashboardProvider()),
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
       ],
       child: Consumer<ThemeContext>(
         builder: (context, themeContext, _) => MaterialApp(
