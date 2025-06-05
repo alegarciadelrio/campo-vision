@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
-
+import 'config/config.dart';
 import 'context/auth_context.dart';
 import 'context/theme_context.dart';
+import 'providers/dashboard_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/dashboard_screen.dart';
 
@@ -33,7 +34,9 @@ void main() async {
     print('Environment variables loaded:');
     print('COGNITO_REGION: ${dotenv.env['COGNITO_REGION']}');
     print('USER_POOL_ID: ${dotenv.env['USER_POOL_ID']}');
+    print('API_URL: ${dotenv.env['API_URL']}');
     // Don't print client ID for security reasons
+    Config.printEnvVars();
   } else {
     print('WARNING: No environment variables loaded!');
   }
@@ -50,6 +53,7 @@ class CampoVisionApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthContext()),
         ChangeNotifierProvider(create: (_) => ThemeContext()),
+        ChangeNotifierProvider(create: (_) => DashboardProvider()),
       ],
       child: Consumer<ThemeContext>(
         builder: (context, themeContext, _) => MaterialApp(
