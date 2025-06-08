@@ -34,27 +34,38 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: 'Companies'),
-            Tab(text: 'Devices'),
-          ],
-          labelColor: Colors.white,
-          indicatorColor: Colors.white,
+    print('SettingsScreen: Building widget');
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Settings'),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          foregroundColor: Colors.white,
+          bottom: TabBar(
+            controller: _tabController,
+            tabs: const [
+              Tab(icon: Icon(Icons.business), text: 'Companies'),
+              Tab(icon: Icon(Icons.devices), text: 'Devices'),
+            ],
+            labelColor: Colors.white,
+            indicatorColor: Colors.white,
+          ),
         ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: const [
-          CompanySettings(),
-          DeviceSettings(),
-        ],
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            // Wrap each tab content in a Container with theme-aware background
+            Container(
+              color: Theme.of(context).brightness == Brightness.light ? Colors.white : Colors.black,
+              child: const CompanySettings(),
+            ),
+            Container(
+              color: Theme.of(context).brightness == Brightness.light ? Colors.white : Colors.black,
+              child: const DeviceSettings(),
+            ),
+          ],
+        ),
       ),
     );
   }

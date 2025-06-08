@@ -19,6 +19,18 @@ class _DeviceSettingsState extends State<DeviceSettings> {
   Device? _currentDevice;
 
   @override
+  void initState() {
+    super.initState();
+    // Ensure devices are loaded when the widget is initialized
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+      if (settingsProvider.selectedCompany != null) {
+        settingsProvider.fetchDevices(settingsProvider.selectedCompany!.companyId);
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _deviceIdController.dispose();
     _nameController.dispose();
@@ -210,9 +222,27 @@ class _DeviceSettingsState extends State<DeviceSettings> {
                       borderRadius: BorderRadius.circular(8.0),
                       border: Border.all(color: Colors.red),
                     ),
-                    child: Text(
-                      settingsProvider.error,
-                      style: TextStyle(color: Colors.red.shade900),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.error_outline, color: Colors.red.shade900),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                settingsProvider.error,
+                                style: TextStyle(color: Colors.red.shade900, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close, size: 20),
+                              color: Colors.red.shade900,
+                              onPressed: () => settingsProvider.clearError(),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
