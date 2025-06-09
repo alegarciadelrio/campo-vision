@@ -24,6 +24,29 @@ class ApiService {
     };
   }
   
+  // Execute an API request with automatic token refresh on 401 errors
+  Future<http.Response> _executeRequest(Future<http.Response> Function() requestFn) async {
+    try {
+      final response = await requestFn();
+      
+      // If we get a 401 error, try to refresh the token and retry once
+      if (response.statusCode == 401) {
+        print('Received 401 error, attempting to refresh token');
+        final refreshed = await _authService.forceRefreshTokens();
+        
+        if (refreshed) {
+          print('Token refreshed, retrying request');
+          return await requestFn();
+        }
+      }
+      
+      return response;
+    } catch (e) {
+      print('API request error: $e');
+      rethrow;
+    }
+  }
+  
   // Get telemetry data for a specific device with optional time range
   Future<Map<String, dynamic>> getTelemetryData(String deviceId, {String? startTime, String? endTime}) async {
     try {
@@ -43,11 +66,11 @@ class ApiService {
       // Build URI with query parameters
       final uri = Uri.parse('${Config.apiUrl}/telemetry').replace(queryParameters: queryParams);
       
-      // Make API request with authorization header
-      final response = await http.get(
+      // Make API request with authorization header and automatic token refresh
+      final response = await _executeRequest(() async => http.get(
         uri,
         headers: await _getHeaders(),
-      );
+      ));
       
       if (response.statusCode == 200) {
         return json.decode(response.body);
@@ -66,10 +89,10 @@ class ApiService {
         queryParameters: {'companyId': companyId},
       );
       
-      final response = await http.get(
+      final response = await _executeRequest(() async => http.get(
         uri,
         headers: await _getHeaders(),
-      );
+      ));
       
       if (response.statusCode == 200) {
         return json.decode(response.body);
@@ -88,13 +111,10 @@ class ApiService {
       print('API URL: ${Config.apiUrl}');
       print('Requesting companies from: $uri');
       
-      final headers = await _getHeaders();
-      print('Request headers: $headers');
-      
-      final response = await http.get(
+      final response = await _executeRequest(() async => http.get(
         uri,
-        headers: headers,
-      );
+        headers: await _getHeaders(),
+      ));
       
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
@@ -117,10 +137,10 @@ class ApiService {
         queryParameters: {'deviceId': deviceId},
       );
       
-      final response = await http.get(
+      final response = await _executeRequest(() async => http.get(
         uri,
         headers: await _getHeaders(),
-      );
+      ));
       
       if (response.statusCode == 200) {
         return json.decode(response.body);
@@ -137,11 +157,11 @@ class ApiService {
     try {
       final uri = Uri.parse('${Config.apiUrl}/devices');
       
-      final response = await http.post(
+      final response = await _executeRequest(() async => http.post(
         uri,
         headers: await _getHeaders(),
         body: json.encode(deviceData),
-      );
+      ));
       
       if (response.statusCode == 200) {
         return json.decode(response.body);
@@ -193,10 +213,10 @@ class ApiService {
         queryParameters: {'deviceId': deviceId},
       );
       
-      final response = await http.delete(
+      final response = await _executeRequest(() async => http.delete(
         uri,
         headers: await _getHeaders(),
-      );
+      ));
       
       if (response.statusCode == 200) {
         return json.decode(response.body);
@@ -215,10 +235,10 @@ class ApiService {
         queryParameters: {'companyId': companyId},
       );
       
-      final response = await http.get(
+      final response = await _executeRequest(() async => http.get(
         uri,
         headers: await _getHeaders(),
-      );
+      ));
       
       if (response.statusCode == 200) {
         return json.decode(response.body);
@@ -235,11 +255,11 @@ class ApiService {
     try {
       final uri = Uri.parse('${Config.apiUrl}/company');
       
-      final response = await http.post(
+      final response = await _executeRequest(() async => http.post(
         uri,
         headers: await _getHeaders(),
         body: json.encode(companyData),
-      );
+      ));
       
       if (response.statusCode == 200) {
         return json.decode(response.body);
@@ -263,11 +283,11 @@ class ApiService {
         'description': companyData['description'] ?? '',
       };
       
-      final response = await http.put(
+      final response = await _executeRequest(() async => http.put(
         uri,
         headers: await _getHeaders(),
         body: json.encode(payload),
-      );
+      ));
       
       if (response.statusCode == 200) {
         return json.decode(response.body);
@@ -286,10 +306,10 @@ class ApiService {
         queryParameters: {'companyId': companyId},
       );
       
-      final response = await http.delete(
+      final response = await _executeRequest(() async => http.delete(
         uri,
         headers: await _getHeaders(),
-      );
+      ));
       
       if (response.statusCode == 200) {
         return json.decode(response.body);

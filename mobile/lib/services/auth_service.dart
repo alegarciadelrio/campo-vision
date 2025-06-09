@@ -8,6 +8,7 @@ class AuthService {
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   CognitoUser? _cognitoUser;
   CognitoUserSession? _session;
+  Timer? _refreshTimer;
   
   static final AuthService _instance = AuthService._internal();
   
@@ -68,6 +69,9 @@ class AuthService {
       );
       await _secureStorage.write(key: 'email', value: email);
       
+      // Start periodic token refresh
+      _startTokenRefreshTimer();
+      
       return true;
     } catch (e) {
       print('Sign in error: $e');
@@ -80,6 +84,10 @@ class AuthService {
     _cognitoUser?.signOut();
     await _secureStorage.deleteAll();
     _session = null;
+    
+    // Cancel refresh timer
+    _refreshTimer?.cancel();
+    _refreshTimer = null;
   }
   
   // Check if user is authenticated
@@ -108,34 +116,19 @@ class AuthService {
         refreshToken: CognitoRefreshToken(refreshToken),
       );
       
-      // Check if session is valid
+      // Check if session is valid or refresh it
       if (!_session!.isValid()) {
-        // Try to refresh the session
-        try {
-          _session = await _cognitoUser!.refreshSession(CognitoRefreshToken(refreshToken));
-          
-          // Update stored tokens
-          await _secureStorage.write(
-            key: 'idToken',
-            value: _session!.getIdToken().getJwtToken(),
-          );
-          await _secureStorage.write(
-            key: 'accessToken',
-            value: _session!.getAccessToken().getJwtToken(),
-          );
-          await _secureStorage.write(
-            key: 'refreshToken',
-            value: _session!.getRefreshToken()?.getToken(),
-          );
-          
+        if (await _refreshTokens()) {
+          // Start periodic token refresh if not already running
+          _startTokenRefreshTimer();
           return true;
-        } catch (e) {
-          print('Session refresh error: $e');
-          await signOut();
+        } else {
           return false;
         }
       }
       
+      // Start periodic token refresh if not already running
+      _startTokenRefreshTimer();
       return true;
     } catch (e) {
       print('Authentication check error: $e');
@@ -154,5 +147,57 @@ class AuthService {
   // Get the current user's email
   Future<String?> getCurrentUserEmail() async {
     return await _secureStorage.read(key: 'email');
+  }
+  
+  // Refresh tokens using refresh token
+  Future<bool> _refreshTokens() async {
+    try {
+      final refreshToken = await _secureStorage.read(key: 'refreshToken');
+      if (refreshToken == null || _cognitoUser == null) {
+        return false;
+      }
+      
+      _session = await _cognitoUser!.refreshSession(CognitoRefreshToken(refreshToken));
+      
+      // Update stored tokens
+      await _secureStorage.write(
+        key: 'idToken',
+        value: _session!.getIdToken().getJwtToken(),
+      );
+      await _secureStorage.write(
+        key: 'accessToken',
+        value: _session!.getAccessToken().getJwtToken(),
+      );
+      await _secureStorage.write(
+        key: 'refreshToken',
+        value: _session!.getRefreshToken()?.getToken(),
+      );
+      
+      print('Token refreshed successfully');
+      return true;
+    } catch (e) {
+      print('Token refresh error: $e');
+      await signOut();
+      return false;
+    }
+  }
+  
+  // Start a timer to refresh tokens periodically
+  void _startTokenRefreshTimer() {
+    // Cancel any existing timer
+    _refreshTimer?.cancel();
+    
+    // Refresh tokens every 50 minutes (tokens typically last 60 minutes)
+    _refreshTimer = Timer.periodic(const Duration(minutes: 50), (timer) async {
+      print('Attempting periodic token refresh');
+      if (!await _refreshTokens()) {
+        timer.cancel();
+      }
+    });
+  }
+  
+  // Force refresh tokens (can be called when a 401 error is received)
+  Future<bool> forceRefreshTokens() async {
+    return await _refreshTokens();
   }
 }
