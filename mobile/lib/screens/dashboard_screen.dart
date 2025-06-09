@@ -126,8 +126,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           
           return Column(
             children: [
-
-              
               // Main content - Device list and map
               Expanded(
                 child: dashboardProvider.isLoading && dashboardProvider.devices.isEmpty
@@ -148,42 +146,136 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           // Portrait: List on top, map on bottom
                           return Column(
                             children: [
-                              // Device list (1/3 of screen)
-                              Expanded(
-                                flex: 1,
-                                child: DeviceList(),
-                              ),
-                              // Device map (2/3 of screen)
-                              Expanded(
-                                flex: 2,
+                              // Device map (full screen)
+                              const Expanded(
                                 child: DeviceMap(),
                               ),
                             ],
                           );
                         } else {
-                          // Landscape: List on left, map on right
-                          return Row(
-                            children: [
-                              // Device list (1/3 of screen)
-                              Expanded(
-                                flex: 1,
-                                child: DeviceList(),
-                              ),
-                              // Device map (2/3 of screen)
-                              Expanded(
-                                flex: 2,
-                                child: DeviceMap(),
-                              ),
-                            ],
-                          );
+                          // Landscape: Map on full screen
+                          return const DeviceMap();
                         }
                       },
                     ),
               ),
+              
+              // Collapsible devices section at the bottom
+              const CollapsibleDevicesSection(),
             ],
           );
         },
       ),
+    );
+  }
+}
+
+/// A collapsible section that displays the device list at the bottom of the dashboard
+class CollapsibleDevicesSection extends StatefulWidget {
+  const CollapsibleDevicesSection({super.key});
+
+  @override
+  State<CollapsibleDevicesSection> createState() => _CollapsibleDevicesSectionState();
+}
+
+class _CollapsibleDevicesSectionState extends State<CollapsibleDevicesSection> with SingleTickerProviderStateMixin {
+  bool _isExpanded = false;
+  late AnimationController _controller;
+  late Animation<double> _heightFactor;
+  
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _heightFactor = _controller.drive(CurveTween(curve: Curves.easeInOut));
+  }
+  
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+  
+  void _toggleExpanded() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+      if (_isExpanded) {
+        _controller.forward();
+      } else {
+        _controller.reverse();
+      }
+    });
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // Header bar with toggle button
+        InkWell(
+          onTap: _toggleExpanded,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 4.0,
+                  offset: const Offset(0, -2),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Devices',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                Icon(
+                  _isExpanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up,
+                  color: Colors.white,
+                ),
+              ],
+            ),
+          ),
+        ),
+        
+        // Expandable content
+        AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            return ClipRect(
+              child: Align(
+                heightFactor: _heightFactor.value,
+                child: child,
+              ),
+            );
+          },
+          child: Container(
+            height: 300, // Fixed height for the device list when expanded
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 4.0,
+                  offset: const Offset(0, -1),
+                ),
+              ],
+            ),
+            child: const DeviceList(),
+          ),
+        ),
+      ],
     );
   }
 }
