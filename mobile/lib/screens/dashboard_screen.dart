@@ -36,6 +36,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         actions: [
+          // Company selector in app bar
+          Consumer<DashboardProvider>(
+            builder: (context, dashboardProvider, _) {
+              if (dashboardProvider.isLoading || dashboardProvider.companies.isEmpty) {
+                return const SizedBox(width: 40);
+              }
+              
+              return DropdownButton<String>(
+                value: dashboardProvider.selectedCompany?.companyId,
+                hint: const Text('Select company', style: TextStyle(color: Colors.white70)),
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                underline: Container(height: 0),
+                dropdownColor: Theme.of(context).colorScheme.primary,
+                onChanged: (String? companyId) {
+                  if (companyId != null) {
+                    final company = dashboardProvider.companies.firstWhere(
+                      (c) => c.companyId == companyId,
+                    );
+                    dashboardProvider.selectCompany(company);
+                  }
+                },
+                items: dashboardProvider.companies.map((company) {
+                  return DropdownMenuItem<String>(
+                    value: company.companyId,
+                    child: Text(company.name),
+                  );
+                }).toList(),
+              );
+            },
+          ),
+          
           // Settings button
           IconButton(
             icon: const Icon(Icons.settings),
@@ -94,20 +126,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           
           return Column(
             children: [
-              // Company selector
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    const Text(
-                      'Company:',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(child: CompanySelector()),
-                  ],
-                ),
-              ),
+
               
               // Main content - Device list and map
               Expanded(
