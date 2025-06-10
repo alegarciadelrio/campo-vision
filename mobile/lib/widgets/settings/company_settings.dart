@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/company.dart';
 import '../../providers/settings_provider.dart';
+import '../../screens/company_edit_screen.dart';
 
 class CompanySettings extends StatefulWidget {
   const CompanySettings({super.key});
@@ -11,38 +12,30 @@ class CompanySettings extends StatefulWidget {
 }
 
 class _CompanySettingsState extends State<CompanySettings> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _descriptionController = TextEditingController();
   Company? _currentCompany;
 
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _descriptionController.dispose();
-    super.dispose();
+  void _navigateToAddCompany(BuildContext context) async {
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const CompanyEditScreen(),
+      ),
+    );
+    
+    if (result == true) {
+      // Refresh will happen automatically via provider
+    }
   }
 
-  void _showAddDialog(BuildContext context) {
-    _nameController.clear();
-    _descriptionController.clear();
-    _currentCompany = null;
-
-    showDialog(
-      context: context,
-      builder: (context) => _buildCompanyDialog(context, isEdit: false),
+  void _navigateToEditCompany(BuildContext context, Company company) async {
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => CompanyEditScreen(company: company),
+      ),
     );
-  }
-
-  void _showEditDialog(BuildContext context, Company company) {
-    _nameController.text = company.name;
-    _descriptionController.text = company.description ?? '';
-    _currentCompany = company;
-
-    showDialog(
-      context: context,
-      builder: (context) => _buildCompanyDialog(context, isEdit: true),
-    );
+    
+    if (result == true) {
+      // Refresh will happen automatically via provider
+    }
   }
 
   void _showDeleteDialog(BuildContext context, Company company) {
@@ -73,84 +66,7 @@ class _CompanySettingsState extends State<CompanySettings> {
     );
   }
 
-  Widget _buildCompanyDialog(BuildContext context, {required bool isEdit}) {
-    final title = isEdit ? 'Edit Company' : 'Add Company';
-    final buttonText = isEdit ? 'Update' : 'Add';
 
-    return AlertDialog(
-      title: Text(title),
-      content: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Company Name*',
-                border: OutlineInputBorder(),
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a company name';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                border: OutlineInputBorder(),
-              ),
-              minLines: 2,
-              maxLines: 4,
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
-        ),
-        TextButton(
-          onPressed: () {
-            if (_formKey.currentState!.validate()) {
-              Navigator.of(context).pop();
-              if (isEdit) {
-                _handleUpdateCompany(context);
-              } else {
-                _handleAddCompany(context);
-              }
-            }
-          },
-          child: Text(buttonText),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _handleAddCompany(BuildContext context) async {
-    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
-    
-    final name = _nameController.text.trim();
-    final description = _descriptionController.text.trim();
-    
-    await settingsProvider.addCompany(name, description);
-  }
-
-  Future<void> _handleUpdateCompany(BuildContext context) async {
-    if (_currentCompany == null) return;
-    
-    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
-    
-    final name = _nameController.text.trim();
-    final description = _descriptionController.text.trim();
-    
-    await settingsProvider.updateCompany(_currentCompany!.companyId, name, description);
-  }
 
   Future<void> _handleDeleteCompany(BuildContext context) async {
     if (_currentCompany == null) return;
@@ -195,7 +111,7 @@ class _CompanySettingsState extends State<CompanySettings> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 16.0),
                 child: ElevatedButton.icon(
-                  onPressed: () => _showAddDialog(context),
+                  onPressed: () => _navigateToAddCompany(context),
                   icon: const Icon(Icons.add),
                   label: const Text('Add Company'),
                   style: ElevatedButton.styleFrom(
@@ -239,7 +155,7 @@ class _CompanySettingsState extends State<CompanySettings> {
                             children: [
                               IconButton(
                                 icon: const Icon(Icons.edit),
-                                onPressed: () => _showEditDialog(context, company),
+                                onPressed: () => _navigateToEditCompany(context, company),
                                 tooltip: 'Edit',
                               ),
                               IconButton(
