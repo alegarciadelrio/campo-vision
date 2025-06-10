@@ -100,50 +100,52 @@ class _DeviceSettingsState extends State<DeviceSettings> {
 
     return AlertDialog(
       title: Text(title),
-      content: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
-              controller: _deviceIdController,
-              decoration: const InputDecoration(
-                labelText: 'Device ID*',
-                border: OutlineInputBorder(),
+      content: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _deviceIdController,
+                decoration: const InputDecoration(
+                  labelText: 'Device ID*',
+                  border: OutlineInputBorder(),
+                ),
+                enabled: !isEdit, // Cannot edit device ID
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a device ID';
+                  }
+                  return null;
+                },
               ),
-              enabled: !isEdit, // Cannot edit device ID
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a device ID';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Device Name*',
-                border: OutlineInputBorder(),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Device Name*',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a device name';
+                  }
+                  return null;
+                },
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a device name';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                border: OutlineInputBorder(),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(
+                  labelText: 'Description',
+                  border: OutlineInputBorder(),
+                ),
+                minLines: 2,
+                maxLines: 4,
               ),
-              minLines: 2,
-              maxLines: 4,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       actions: [

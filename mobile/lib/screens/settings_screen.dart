@@ -38,6 +38,8 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
     return DefaultTabController(
       length: 2,
       child: Scaffold(
+        // Ensure the screen resizes when keyboard appears
+        resizeToAvoidBottomInset: true,
         appBar: AppBar(
           title: const Text('Settings'),
           backgroundColor: Theme.of(context).colorScheme.primary,
@@ -55,14 +57,18 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
         body: TabBarView(
           controller: _tabController,
           children: [
-            // Wrap each tab content in a Container with theme-aware background
+            // Wrap each tab content in a Container with theme-aware background and use Flexible for proper constraints
             Container(
               color: Theme.of(context).brightness == Brightness.light ? Colors.white : Colors.black,
-              child: const CompanySettings(),
+              child: const SafeArea(
+                child: CompanySettings(),
+              ),
             ),
             Container(
               color: Theme.of(context).brightness == Brightness.light ? Colors.white : Colors.black,
-              child: const DeviceSettings(),
+              child: const SafeArea(
+                child: DeviceSettings(),
+              ),
             ),
           ],
         ),
