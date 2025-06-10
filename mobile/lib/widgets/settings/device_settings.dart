@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../models/company.dart';
 import '../../models/device.dart';
 import '../../providers/settings_provider.dart';
+import '../../screens/device_edit_screen.dart';
 
 class DeviceSettings extends StatefulWidget {
   const DeviceSettings({super.key});
@@ -12,10 +13,6 @@ class DeviceSettings extends StatefulWidget {
 }
 
 class _DeviceSettingsState extends State<DeviceSettings> {
-  final _formKey = GlobalKey<FormState>();
-  final _deviceIdController = TextEditingController();
-  final _nameController = TextEditingController();
-  final _descriptionController = TextEditingController();
   Device? _currentDevice;
 
   @override
@@ -30,40 +27,31 @@ class _DeviceSettingsState extends State<DeviceSettings> {
     });
   }
 
-  @override
-  void dispose() {
-    _deviceIdController.dispose();
-    _nameController.dispose();
-    _descriptionController.dispose();
-    super.dispose();
-  }
-
-  void _showAddDialog(BuildContext context, String companyId) {
-    _deviceIdController.clear();
-    _nameController.clear();
-    _descriptionController.clear();
-    _currentDevice = null;
-
-    showDialog(
-      context: context,
-      builder: (context) => _buildDeviceDialog(context, isEdit: false, companyId: companyId),
-    );
-  }
-
-  void _showEditDialog(BuildContext context, Device device) {
-    _deviceIdController.text = device.deviceId;
-    _nameController.text = device.name ?? '';
-    _descriptionController.text = device.description ?? '';
-    _currentDevice = device;
-
-    showDialog(
-      context: context,
-      builder: (context) => _buildDeviceDialog(
-        context, 
-        isEdit: true, 
-        companyId: device.companyId,
+  void _navigateToAddDevice(BuildContext context, String companyId) async {
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => DeviceEditScreen(companyId: companyId),
       ),
     );
+    
+    if (result == true) {
+      // Refresh will happen automatically via provider
+    }
+  }
+
+  void _navigateToEditDevice(BuildContext context, Device device) async {
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => DeviceEditScreen(
+          device: device,
+          companyId: device.companyId,
+        ),
+      ),
+    );
+    
+    if (result == true) {
+      // Refresh will happen automatically via provider
+    }
   }
 
   void _showDeleteDialog(BuildContext context, Device device) {
@@ -94,10 +82,8 @@ class _DeviceSettingsState extends State<DeviceSettings> {
     );
   }
 
-  Widget _buildDeviceDialog(BuildContext context, {required bool isEdit, required String companyId}) {
-    final title = isEdit ? 'Edit Device' : 'Add Device';
-    final buttonText = isEdit ? 'Update' : 'Add';
 
+<<<<<<< HEAD
     return AlertDialog(
       title: Text(title),
       content: SingleChildScrollView(
@@ -191,6 +177,8 @@ class _DeviceSettingsState extends State<DeviceSettings> {
     
     await settingsProvider.updateDevice(deviceId, name, description, companyId);
   }
+=======
+>>>>>>> feature/mobile-edit-screens
 
   Future<void> _handleDeleteDevice(BuildContext context) async {
     if (_currentDevice == null) return;
@@ -268,7 +256,7 @@ class _DeviceSettingsState extends State<DeviceSettings> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16.0),
                   child: ElevatedButton.icon(
-                    onPressed: () => _showAddDialog(context, settingsProvider.selectedCompany!.companyId),
+                    onPressed: () => _navigateToAddDevice(context, settingsProvider.selectedCompany!.companyId),
                     icon: const Icon(Icons.add),
                     label: const Text('Add Device'),
                     style: ElevatedButton.styleFrom(
@@ -331,7 +319,7 @@ class _DeviceSettingsState extends State<DeviceSettings> {
                             children: [
                               IconButton(
                                 icon: const Icon(Icons.edit),
-                                onPressed: () => _showEditDialog(context, device),
+                                onPressed: () => _navigateToEditDevice(context, device),
                                 tooltip: 'Edit',
                               ),
                               IconButton(
