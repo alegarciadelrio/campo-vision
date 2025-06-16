@@ -7,6 +7,7 @@ import 'settings_screen.dart';
 import '../widgets/company_selector.dart';
 import '../widgets/device_list.dart';
 import '../widgets/device_map.dart';
+import '../widgets/device_details_panel.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -16,6 +17,8 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  // Flag to control whether to show device details panel instead of collapsible devices section
+  bool _showDeviceDetails = false;
   @override
   void initState() {
     super.initState();
@@ -160,8 +163,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
               ),
               
-              // Collapsible devices section at the bottom
-              const CollapsibleDevicesSection(),
+              // Show either device details panel or collapsible devices section
+              _showDeviceDetails && dashboardProvider.selectedDevice != null
+                ? DeviceDetailsPanel(
+                    device: dashboardProvider.selectedDevice!,
+                    onClose: () {
+                      setState(() {
+                        _showDeviceDetails = false;
+                      });
+                    },
+                  )
+                : CollapsibleDevicesSection(
+                    onDeviceSelected: () {
+                      setState(() {
+                        _showDeviceDetails = true;
+                      });
+                    },
+                  ),
             ],
           );
         },
@@ -172,7 +190,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
 /// A collapsible section that displays the device list at the bottom of the dashboard
 class CollapsibleDevicesSection extends StatefulWidget {
-  const CollapsibleDevicesSection({super.key});
+  final VoidCallback onDeviceSelected;
+  
+  const CollapsibleDevicesSection({
+    super.key,
+    required this.onDeviceSelected,
+  });
 
   @override
   State<CollapsibleDevicesSection> createState() => _CollapsibleDevicesSectionState();
@@ -272,7 +295,9 @@ class _CollapsibleDevicesSectionState extends State<CollapsibleDevicesSection> w
                 ),
               ],
             ),
-            child: const DeviceList(),
+            child: DeviceList(
+              onDeviceSelected: widget.onDeviceSelected,
+            ),
           ),
         ),
       ],

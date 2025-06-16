@@ -5,7 +5,12 @@ import '../providers/dashboard_provider.dart';
 import 'device_map.dart';
 
 class DeviceList extends StatefulWidget {
-  const DeviceList({Key? key}) : super(key: key);
+  final VoidCallback? onDeviceSelected;
+  
+  const DeviceList({
+    Key? key,
+    this.onDeviceSelected,
+  }) : super(key: key);
 
   @override
   State<DeviceList> createState() => _DeviceListState();
@@ -187,6 +192,11 @@ class _DeviceListState extends State<DeviceList> {
             // Focus the map on this device if it has location data
             if (device.hasLocation()) {
               DeviceMapController().focusOnDevice(device);
+            }
+            
+            // Notify parent that a device was selected
+            if (widget.onDeviceSelected != null) {
+              widget.onDeviceSelected!();
             }
           },
         );
