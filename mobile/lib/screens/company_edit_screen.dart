@@ -75,9 +75,10 @@ class _CompanyEditScreenState extends State<CompanyEditScreen> {
             padding: const EdgeInsets.all(16.0),
             child: Form(
               key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
                   // Error message
                   if (settingsProvider.error.isNotEmpty)
                     Container(
@@ -144,7 +145,8 @@ class _CompanyEditScreenState extends State<CompanyEditScreen> {
                           )
                         : Text(isEdit ? 'Update Company' : 'Add Company'),
                   ),
-                ],
+                  ],
+                ),
               ),
             ),
           );
