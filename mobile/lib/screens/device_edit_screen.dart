@@ -90,7 +90,8 @@ class _DeviceEditScreenState extends State<DeviceEditScreen> {
             padding: const EdgeInsets.all(16.0),
             child: Form(
               key: _formKey,
-              child: Column(
+              child: SingleChildScrollView(
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Error message
@@ -176,6 +177,7 @@ class _DeviceEditScreenState extends State<DeviceEditScreen> {
                   ),
                 ],
               ),
+            ),
             ),
           );
         },
