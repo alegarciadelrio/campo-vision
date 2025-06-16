@@ -223,6 +223,14 @@ class _DeviceMapState extends State<DeviceMap> {
                               foregroundColor: Colors.white,
                             ),
                           ),
+                          const SizedBox(width: 8),
+                          OutlinedButton(
+                            onPressed: () => _selectDateRange(context),
+                            child: Text(
+                              'Date Range: ${_formatDateShort(_startDate)} - ${_formatDateShort(_endDate)}',
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ),
                         ],
                       ),
                   ],
@@ -277,23 +285,7 @@ class _DeviceMapState extends State<DeviceMap> {
                 ),
               ),
               
-              // Date range selector for track
-              if (dashboardProvider.selectedDevice != null)
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => _selectDateRange(context),
-                          child: Text(
-                            'Date Range: ${_formatDateShort(_startDate)} - ${_formatDateShort(_endDate)}',
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              // Date range selector moved next to show track button
             ],
           ),
         );

@@ -171,31 +171,7 @@ class DeviceDetailsPanel extends StatelessWidget {
                           ],
                         ],
                         
-                        const SizedBox(height: 16),
-                        
-                        // Action buttons
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              ElevatedButton.icon(
-                                onPressed: () {
-                                  // TODO: Navigate to device history screen
-                                },
-                                icon: const Icon(Icons.history),
-                                label: const Text('View History'),
-                              ),
-                              ElevatedButton.icon(
-                                onPressed: () {
-                                  // TODO: Navigate to device edit screen
-                                },
-                                icon: const Icon(Icons.edit),
-                                label: const Text('Edit Device'),
-                              ),
-                            ],
-                          ),
-                        ),
+                        // Action buttons section removed
                       ],
                     ),
                   ),
