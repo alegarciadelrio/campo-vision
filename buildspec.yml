@@ -52,5 +52,5 @@ phases:
       - cd frontend
       - export NODE_ENV=production
       - chmod +x deploy-s3.sh
-      - ./deploy-s3.sh
+      - NODE_ENV=production ./deploy-s3.sh
       - cd ..
