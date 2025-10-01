@@ -22,6 +22,7 @@ phases:
       # Build the frontend
       - echo "Building frontend..."
       - cd frontend
+      - export NODE_ENV=production
       - npm run build
       - cd ..
 
@@ -48,6 +49,7 @@ phases:
       # Deploy the frontend
       - echo "Deploying frontend..."
       - cd frontend
+      - export NODE_ENV=production
       - chmod +x deploy-s3.sh
       - ./deploy-s3.sh
       - cd ..
