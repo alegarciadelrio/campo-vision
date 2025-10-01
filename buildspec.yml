@@ -4,7 +4,7 @@ phases:
   install:
     runtime-versions:
       python: 3.12
-      nodejs: 18
+      nodejs: 20
     commands:
       # Install AWS SAM CLI
       - python --version
@@ -23,6 +23,7 @@ phases:
       - echo "Building frontend..."
       - cd frontend
       - export NODE_ENV=production
+      - export GENERATE_SOURCEMAP=false
       - npm run build
       - cd ..
 
