@@ -4,18 +4,37 @@ phases:
   install:
     runtime-versions:
       python: 3.12
+      nodejs: 18
     commands:
+      # Install AWS SAM CLI
       - python --version
       - pip install --upgrade pip
       - pip install --upgrade aws-sam-cli
       - sam --version
+      
+      # Install Node.js dependencies for frontend
+      - cd frontend
+      - npm ci
+      - cd ..
+
+  pre_build:
+    commands:
+      # Build the frontend
+      - echo "Building frontend..."
+      - cd frontend
+      - npm run build
+      - cd ..
 
   build:
     commands:
+      # Build the backend
+      - echo "Building SAM application..."
       - sam build --use-container
-      
+
   post_build:
     commands:
+      # Deploy the backend
+      - echo "Deploying backend..."
       - |
         sam deploy \
           --stack-name campo-vision \
@@ -25,3 +44,10 @@ phases:
           --no-confirm-changeset \
           --no-fail-on-empty-changeset \
           --region ${AWS_REGION}
+      
+      # Deploy the frontend
+      - echo "Deploying frontend..."
+      - cd frontend
+      - chmod +x deploy-s3.sh
+      - ./deploy-s3.sh
+      - cd ..
