@@ -16,7 +16,8 @@ phases:
       
   post_build:
     commands:
-      - sam deploy \
+      - |
+        sam deploy \
           --stack-name campo-vision \
           --s3-bucket ${ARTIFACT_BUCKET} \
           --s3-prefix ${ARTIFACT_FOLDER} \
