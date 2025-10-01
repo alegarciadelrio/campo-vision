@@ -13,4 +13,14 @@ phases:
   build:
     commands:
       - sam build --use-container
-      - sam deploy --no-confirm-changeset --no-fail-on-empty-changeset
+      
+  post_build:
+    commands:
+      - sam deploy \
+          --stack-name campo-vision \
+          --s3-bucket ${ARTIFACT_BUCKET} \
+          --s3-prefix ${ARTIFACT_FOLDER} \
+          --capabilities CAPABILITY_IAM \
+          --no-confirm-changeset \
+          --no-fail-on-empty-changeset \
+          --region ${AWS_REGION}
