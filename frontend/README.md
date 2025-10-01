@@ -42,7 +42,9 @@ This is the frontend application for Campo Vision, a telemetry system for agricu
 
 ## Deployment to S3 and CloudFront
 
-The frontend is designed to be deployed to AWS S3 and CloudFront using the CloudFormation template in the main project. The deployment process is automated through the `deploy-s3.sh` script.
+The frontend is designed to be deployed to AWS S3 and CloudFront using the CloudFormation template in the main project. The deployment process is automated through the `deploy-s3.sh` script. Run:
+
+```NODE_ENV=production ./deploy-s3.sh```
 
 To deploy manually:
 
